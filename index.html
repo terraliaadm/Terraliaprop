@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>División Inmobiliaria · ABM Holdings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2A24; --ink-soft:#2C3E36; --paper:#F4F1E9; --paper-2:#EDE8DC;
+  --card:#FFFFFF; --brass:#B4894C; --brass-deep:#8A6A38; --brass-soft:#E7D9BF;
+  --sage:#5F7A64; --sage-soft:#E3EAE0; --clay:#B0563C; --clay-soft:#F0DDD3;
+  --line:#E3DDD0; --line-soft:#EFEADF; --muted:#726D60; --ink-70:rgba(27,42,36,.72);
+  --shadow:0 1px 2px rgba(27,42,36,.05),0 8px 28px -12px rgba(27,42,36,.18);
+  --shadow-lg:0 24px 60px -20px rgba(27,42,36,.32);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink);
+  font-size:13px;line-height:1.42;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;line-height:1.08;letter-spacing:.01em}
+.mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit;font-size:14px}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;color:var(--brass-deep)}
+.muted{color:var(--muted)}
+
+/* Layout */
+.app{display:grid;grid-template-columns:198px 1fr;min-height:100vh}
+.sidebar{background:var(--ink);color:#EDE8DC;padding:20px 14px;position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;gap:6px}
+.brand{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(237,232,220,.14)}
+.brand .mark{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;line-height:1;color:#fff}
+.brand .mark span{color:var(--brass)}
+.brand .sub{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--brass);margin-top:8px;font-weight:600}
+.navlink{display:flex;align-items:center;gap:10px;padding:8px 11px;border-radius:8px;color:#D5CFC2;
+  font-size:12.5px;font-weight:500;transition:.18s;text-align:left;width:100%}
+.navlink:hover{background:rgba(237,232,220,.07);color:#fff}
+.navlink.active{background:var(--brass);color:var(--ink);font-weight:600}
+.navlink .ic{width:15px;height:15px;flex:none;opacity:.9}
+.nav-foot{margin-top:auto;padding-top:14px;border-top:1px solid rgba(237,232,220,.14);font-size:11px;color:#9A958A;line-height:1.6}
+
+.main{min-width:0;padding:0 0 80px}
+.topbar{background:rgba(244,241,233,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  padding:13px 26px;position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.topbar .title h1{font-size:23px}
+.topbar .title .eyebrow{margin-bottom:7px}
+.fx-pill{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--muted)}
+.fx-pill b{color:var(--ink);font-weight:600}
+.view{padding:20px 26px 0;max-width:1320px}
+.view.hidden{display:none}
+
+/* KPI strip */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:0;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:20px}
+.kpi{padding:12px 14px;border-right:1px solid var(--line-soft)}
+.kpi:last-child{border-right:none}
+.kpi .k-lab{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px}
+.kpi .k-val{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+.kpi .k-val.sm{font-size:13.5px}
+.kpi .k-sub{font-size:9.5px;color:var(--sage);margin-top:3px;font-weight:600}
+
+/* Section head */
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px;gap:16px;flex-wrap:wrap}
+.sec-head h2{font-size:21px}
+.sec-head .eyebrow{margin-bottom:6px}
+
+/* Filters */
+.filters{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end}
+.filter-grp .f-lab{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{padding:5px 11px;border-radius:100px;border:1px solid var(--line);background:var(--card);font-size:11.5px;
+  font-weight:500;color:var(--ink-soft);transition:.15s}
+.chip:hover{border-color:var(--brass)}
+.chip.active{background:var(--ink);color:#F4F1E9;border-color:var(--ink)}
+.chip .ct{opacity:.5;font-size:11px;margin-left:5px}
+
+/* Property grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:12px}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);
+  transition:.2s;cursor:pointer;display:flex;flex-direction:column}
+.pcard:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--brass-soft)}
+.pcard .banner{height:74px;background:var(--ink);position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:11px}
+.pcard .banner .pattern{position:absolute;inset:0;opacity:.5}
+.pcard .banner .tipo-tag{position:absolute;top:9px;left:11px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:600;color:var(--ink);background:var(--brass);padding:4px 9px;border-radius:5px;z-index:2}
+.pcard .banner .estatus{position:absolute;top:9px;right:11px;font-size:10.5px;font-weight:600;color:#EDE8DC;z-index:2;
+  display:flex;align-items:center;gap:6px}
+.pcard .banner .dot{width:7px;height:7px;border-radius:50%;background:var(--sage)}
+.pcard .banner .flag{position:relative;z-index:2;font-size:11px;color:var(--brass-soft);font-weight:600;letter-spacing:.05em}
+.pcard .body{padding:11px 13px 12px}
+.pcard .emp{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass-deep);font-weight:600}
+.pcard h3{font-size:17px;margin:3px 0 2px;line-height:1.05}
+.pcard .loc{font-size:11px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.pcard .mstrip{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;padding-top:10px;border-top:1px solid var(--line-soft)}
+.pcard .m .m-l{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.pcard .m .m-v{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;margin-top:3px}
+.pcard .m .m-v.pos{color:var(--sage)}
+.pcard .m .m-v.debt{color:var(--clay)}
+
+.cur-badge{font-size:9.5px;padding:2px 6px;border-radius:4px;background:var(--brass-soft);color:var(--brass-deep);
+  font-weight:700;letter-spacing:.05em;vertical-align:middle}
+
+/* Group label for catalog-by */
+.grouplabel{grid-column:1/-1;display:flex;align-items:center;gap:12px;margin:8px 0 0}
+.grouplabel:first-child{margin-top:0}
+.grouplabel h3{font-size:15px;color:var(--ink)}
+.grouplabel .rule{flex:1;height:1px;background:var(--line)}
+.grouplabel .n{font-size:12px;color:var(--muted);font-weight:600}
+
+/* Tables */
+.tablewrap{background:var(--card);border:1px solid var(--line);border-radius:11px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:18px}
+.tbl-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tbl-head h3{font-size:15px}
+.tbl-head .desc{font-size:11px;color:var(--muted);max-width:460px}
+table{width:100%;border-collapse:collapse}
+th{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;
+  padding:8px 12px;border-bottom:1px solid var(--line);background:var(--paper-2)}
+th:first-child{text-align:left}
+.xtd{}
+td{padding:7px 12px;border-bottom:1px solid var(--line-soft);text-align:right;font-size:12px}
+td:first-child{text-align:left;font-weight:500}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:.12s}
+tbody tr:hover{background:var(--paper)}
+tr.total-row td{background:var(--paper-2);font-weight:700;border-top:2px solid var(--ink);border-bottom:none}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.pos{color:var(--sage);font-weight:600}
+.debt{color:var(--clay);font-weight:600}
+.rank{display:inline-flex;width:19px;height:19px;border-radius:50%;background:var(--ink);color:var(--brass);
+  align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-right:9px;font-family:'IBM Plex Mono',monospace}
+.bar-cell{position:relative}
+.bar-cell .bar{position:absolute;left:16px;bottom:6px;height:3px;background:var(--brass);border-radius:2px;opacity:.85}
+
+/* Cash flow chart */
+.flowchart{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:18px}
+.flowbars{display:flex;align-items:flex-end;gap:5px;height:150px;margin-top:16px;padding-bottom:2px}
+.fb{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.fb .col{width:100%;max-width:38px;background:linear-gradient(180deg,var(--brass) 0%,var(--brass-deep) 100%);
+  border-radius:5px 5px 0 0;transition:.3s;position:relative;min-height:2px}
+.fb .col.big{background:linear-gradient(180deg,var(--clay) 0%,#8f4530 100%)}
+.fb .col:hover{filter:brightness(1.08)}
+.fb .col .tip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:7px;background:var(--ink);
+  color:#fff;font-size:10.5px;padding:5px 8px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:.15s;
+  font-family:'IBM Plex Mono',monospace;z-index:5}
+.fb .col:hover .tip{opacity:1}
+.fb .lab{font-size:9.5px;color:var(--muted);font-weight:600;white-space:nowrap;transform:rotate(-42deg);transform-origin:center;height:26px}
+
+/* Detail / ficha */
+.overlay{position:fixed;inset:0;background:rgba(27,42,36,.5);backdrop-filter:blur(4px);z-index:60;
+  display:flex;justify-content:flex-end;opacity:0;pointer-events:none;transition:.28s}
+.overlay.open{opacity:1;pointer-events:auto}
+.drawer{width:min(680px,94vw);background:var(--paper);height:100vh;overflow-y:auto;box-shadow:var(--shadow-lg);
+  transform:translateX(40px);transition:.32s cubic-bezier(.22,1,.36,1)}
+.overlay.open .drawer{transform:translateX(0)}
+.drawer-hero{background:var(--ink);color:#EDE8DC;padding:20px 26px 22px;position:relative;overflow:hidden}
+.drawer-hero .pattern{position:absolute;inset:0;opacity:.4}
+.drawer-hero .close{position:absolute;top:20px;right:22px;width:34px;height:34px;border-radius:50%;
+  background:rgba(237,232,220,.12);color:#fff;font-size:18px;z-index:3;transition:.15s}
+.drawer-hero .close:hover{background:rgba(237,232,220,.24)}
+.drawer-hero .rel{position:relative;z-index:2}
+.drawer-hero .emp{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:600}
+.drawer-hero h2{font-size:26px;color:#fff;margin:6px 0 5px}
+.drawer-hero .sub{font-size:13px;color:#C7C1B4}
+.drawer-hero .tags{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.dtag{font-size:11px;padding:5px 11px;border-radius:100px;background:rgba(237,232,220,.1);color:#EDE8DC;font-weight:500}
+.dtag.brass{background:var(--brass);color:var(--ink);font-weight:600}
+.drawer-body{padding:20px 26px 44px}
+.d-section{margin-bottom:20px}
+.d-section .d-lab{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-deep);font-weight:600;
+  margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.d-section .d-lab .rule{flex:1;height:1px;background:var(--line)}
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.metric{background:var(--card);padding:10px 13px}
+.metric .ml{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.metric .mv{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;margin-top:5px}
+.metric .mv.pos{color:var(--sage)}.metric .mv.debt{color:var(--clay)}
+.metric .mv.sm{font-size:14px}
+
+/* Admin form */
+.admin-card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:16px 18px;box-shadow:var(--shadow)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+.field label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.field input,.field select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);
+  color:var(--ink);font-family:'IBM Plex Mono',monospace;font-weight:500;transition:.15s;width:100%}
+.field input:focus,.field select:focus{outline:none;border-color:var(--brass);background:#fff;box-shadow:0 0 0 3px var(--brass-soft)}
+.field .hint{font-size:11px;color:var(--muted);font-family:'Inter'}
+.form-actions{display:flex;gap:12px;margin-top:16px;align-items:center}
+.btn{padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;transition:.16s;display:inline-flex;align-items:center;gap:9px}
+.btn-primary{background:var(--brass);color:var(--ink)}
+.btn-primary:hover{background:var(--brass-deep);color:#fff}
+.btn-ghost{border:1px solid var(--line);color:var(--ink-soft);background:var(--card)}
+.btn-ghost:hover{border-color:var(--ink)}
+.saved-flash{font-size:13px;color:var(--sage);font-weight:600;opacity:0;transition:.2s;display:flex;align-items:center;gap:6px}
+.saved-flash.show{opacity:1}
+
+/* Params */
+.params-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px}
+.param-card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:15px 17px;box-shadow:var(--shadow)}
+.param-card .pc-lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.param-card .pc-in{display:flex;align-items:baseline;gap:8px;margin-top:12px}
+.param-card .pc-in .cur{font-size:13px;color:var(--brass-deep);font-weight:600}
+.param-card input{width:110px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);
+  font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--ink)}
+.param-card input:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px var(--brass-soft)}
+.gastos-note{font-size:12.5px;color:var(--muted);margin-top:-14px;margin-bottom:22px}
+
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+  padding:13px 24px;border-radius:100px;font-size:13.5px;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;
+  pointer-events:none;transition:.28s;z-index:80;display:flex;align-items:center;gap:10px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast .dot{width:8px;height:8px;border-radius:50%;background:var(--brass)}
+
+@media(max-width:960px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:-260px;z-index:100;transition:.25s;width:248px}
+  .sidebar.open{left:0}
+  .kpis{grid-template-columns:repeat(3,1fr)}
+  .kpi:nth-child(3){border-right:none}
+  .kpi:nth-child(-n+3){border-bottom:1px solid var(--line-soft)}
+  .view,.topbar{padding-left:22px;padding-right:22px}
+  .menu-btn{display:flex!important}
+  .metrics-grid{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr}
+}
+.menu-btn{display:none;width:42px;height:42px;border-radius:10px;background:var(--ink);color:#fff;
+  align-items:center;justify-content:center;position:fixed;bottom:22px;right:22px;z-index:110;box-shadow:var(--shadow-lg)}
+
+/* ---- modal ---- */
+.modal-overlay{position:fixed;inset:0;background:rgba(27,42,36,.55);backdrop-filter:blur(4px);z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:38px 16px;overflow-y:auto;opacity:0;pointer-events:none;transition:.22s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal-card{width:min(680px,100%);background:var(--paper);border-radius:14px;box-shadow:var(--shadow-lg);transform:translateY(14px);transition:.24s;overflow:hidden}
+.modal-overlay.open .modal-card{transform:translateY(0)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:15px 22px;background:var(--ink);color:#fff}
+.modal-head h3{font-size:18px;color:#fff}
+.close-m{width:30px;height:30px;border-radius:50%;background:rgba(237,232,220,.14);color:#fff;font-size:17px;transition:.15s}
+.close-m:hover{background:rgba(237,232,220,.26)}
+.modal-body{padding:18px 22px 22px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:15px;border-top:1px solid var(--line)}
+.d-lab2{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-deep);font-weight:600;margin:16px 0 9px}
+.d-lab2:first-child{margin-top:0}
+.field select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-family:'Inter';font-weight:500;width:100%;transition:.15s}
+.field select:focus{outline:none;border-color:var(--brass);background:#fff;box-shadow:0 0 0 3px var(--brass-soft)}
+/* ---- imagen ---- */
+.imgrow{display:flex;gap:16px;align-items:center}
+.imgprev{width:132px;height:86px;border-radius:10px;background:var(--paper-2);background-size:cover;background-position:center;border:1px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center}
+.imgprev span{font-size:11px;color:var(--muted)}
+.imgctrls{display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+.pcard-img{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
+.img-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,35,28,.02),rgba(20,35,28,.58));z-index:1}
+.banner.has-img .tipo-tag,.banner.has-img .estatus,.banner.has-img .flag{z-index:3}
+/* ---- hero actions ---- */
+.hero-actions{display:flex;gap:8px;margin-top:15px}
+.btn-hero{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:8px;background:var(--brass);color:var(--ink);font-size:12.5px;font-weight:600;transition:.15s}
+.btn-hero:hover{background:#c99a58}
+.btn-hero.danger{background:rgba(237,232,220,.12);color:#EDE8DC}
+.btn-hero.danger:hover{background:var(--clay);color:#fff}
+/* ---- botones peque ---- */
+.btn.sm{padding:7px 13px;font-size:12.5px}
+.addbtn{white-space:nowrap}
+/* ---- barra de gastos ---- */
+.gasto-bar{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.gasto-bar select,.gasto-bar input{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-family:'Inter';font-size:13px;color:var(--ink)}
+.gasto-bar select:focus,.gasto-bar input:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px var(--brass-soft)}
+.tot-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tot-chip{font-size:12px;padding:6px 12px;border-radius:100px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-family:'IBM Plex Mono'}
+.tot-chip b{color:var(--ink);font-family:'Inter';font-weight:600;margin-right:5px}
+.tot-chip.main{background:var(--ink);color:var(--brass-soft);border-color:var(--ink)}
+.tot-chip.main b{color:#fff}
+.tipo-badge{font-size:11px;padding:3px 9px;border-radius:5px;background:var(--brass-soft);color:var(--brass-deep);font-weight:600}
+.del-x{width:24px;height:24px;border-radius:6px;color:var(--muted);font-size:16px;transition:.14s}
+.del-x:hover{background:var(--clay-soft);color:var(--clay)}
+.mini-l{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mini-v{font-size:15px;font-weight:600;margin-top:4px}
+@media(max-width:960px){.imgrow{flex-direction:column;align-items:flex-start}.gasto-bar{gap:12px}}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="mark">ABM<span>·</span></div>
+      <div class="sub">División Inmobiliaria</div>
+    </div>
+    <button class="navlink active" data-view="catalogo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Catálogo</button>
+    <button class="navlink" data-view="analisis"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>Análisis</button>
+    <button class="navlink" data-view="adeudos"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Adeudos y flujo</button>
+    <button class="navlink" data-view="gastos"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Gastos</button>
+    <button class="navlink" data-view="parametros"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V22a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 20.4l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 6 8.6l-.06-.06A2 2 0 1 1 8.77 5.71l.06.06A1.65 1.65 0 0 0 11 5.6V4.5a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 2.82 1.17l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 11.5h.1a2 2 0 0 1 0 4h-.1z"/></svg>Parámetros</button>
+    <div class="nav-foot">
+      <div id="foot-date"></div>
+      <div style="margin-top:6px">Gestión patrimonial · MXN · EUR · USD</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="title">
+        <div class="eyebrow" id="tb-eyebrow">Cartera de inmuebles</div>
+        <h1 id="tb-title">Catálogo de propiedades</h1>
+      </div>
+      <div class="fx-pill">
+        <span>TC EUR <b id="fx-eur-lbl"></b></span>
+        <span>TC USD <b id="fx-usd-lbl"></b></span>
+      </div>
+    </div>
+
+    <div class="view" id="view-catalogo"></div>
+    <div class="view hidden" id="view-analisis"></div>
+    <div class="view hidden" id="view-adeudos"></div>
+    <div class="view hidden" id="view-gastos"></div>
+    <div class="view hidden" id="view-parametros"></div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay"><div class="drawer" id="drawer"></div></div>
+<button class="menu-btn" id="menuBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+<div class="toast" id="toast"><span class="dot"></span><span id="toast-msg"></span></div>
+<div class="modal-overlay" id="modal"><div class="modal-card"></div></div>
+<script>
+/* ============ DATOS BASE (PDF Inmuebles Base Ago 2026 v2) ============ */
+const SEED = {
+  fx:{ EUR:19.81, USD:17.46 },
+  props:[
+    {id:"vivante",name:"Condominio Vivante",sub:"Casa 49",emp:"TERRALIA",tipo:"Residencial",ciudad:"Zapopan",zona:"",estatus:"Rentado",cur:"MXN",m2:245,anio:2022,arr:"Gerson Rodríguez",renta:25000,va:7664500,vm:9500000,adeudo:0,g:{predial:0,mantto:0,repar:0,inter:0},pago:null},
+    {id:"ventura",name:"Ventura District",sub:"Depto 2003",emp:"SOCIOS",tipo:"Residencial",ciudad:"Zapopan",zona:"",estatus:"Rentado",cur:"MXN",m2:155.06,anio:2021,arr:"Julio Godínez",renta:35755,va:6661219,vm:10854200,adeudo:0,g:{predial:0,mantto:6500,repar:0,inter:0},pago:null},
+    {id:"highrise",name:"High Rise Luxury",sub:"Depto 35",emp:"TERRALIA",tipo:"Residencial",ciudad:"Zapopan",zona:"",estatus:"En Construcción",cur:"MXN",m2:95.82,anio:2023,arr:"",renta:0,va:6675746,vm:8000000,adeudo:667574,g:{predial:0,mantto:0,repar:0,inter:0},pago:{mensualidad:0,pagoFinal:667574,fecha:"2026-09",nota:"Escrituración · entrega septiembre"}},
+    {id:"reforma30",name:"Reforma 30",sub:"Thompson Reforma",emp:"TERRALIA",tipo:"Vertical",ciudad:"Ciudad de México",zona:"Reforma",estatus:"En Construcción",cur:"MXN",m2:350,anio:2025,arr:"",renta:0,va:29750000,vm:45500000,adeudo:0,g:{predial:0,mantto:0,repar:0,inter:0},pago:null},
+    {id:"parksky",name:"The Park Sky Life",sub:"Torre C · Depto 401",emp:"TERRALIA",tipo:"Residencial",ciudad:"Querétaro",zona:"",estatus:"En Construcción",cur:"MXN",m2:132,anio:2023,arr:"",renta:0,va:5538289,vm:7500000,adeudo:4776774.30,g:{predial:0,mantto:0,repar:0,inter:0},pago:{mensualidad:23076.20,done:9,total:24,pagoFinal:4430631,fecha:"2028-01",nota:"Pago final enero 2028"}},
+    {id:"puntosur",name:"Punto Sur T2",sub:"Depto 401 · Torre 2",emp:"TERRALIA",tipo:"Residencial",ciudad:"Tlajomulco",zona:"",estatus:"Rentado",cur:"MXN",m2:184.64,anio:2022,arr:"José Quezada",renta:32000,va:7552500,vm:10000000,adeudo:0,g:{predial:0,mantto:6832,repar:0,inter:0},pago:null},
+    {id:"tresmarias",name:"Club de Golf 3 Marías",sub:"San Pedro 161",emp:"MASLOW",tipo:"Residencial",ciudad:"Morelia",zona:"",estatus:"En proceso de venta",cur:"MXN",m2:1046.98,anio:2024,arr:"Alfredo Anaya",renta:50000,va:22537000,vm:24000000,adeudo:0,g:{predial:0,mantto:18400,repar:0,inter:0},pago:null},
+    {id:"torreparkelite",name:"Torre Park Elite",sub:"Depto 1006",emp:"MASLOW",tipo:"Residencial",ciudad:"Zapopan",zona:"",estatus:"En Construcción",cur:"MXN",m2:71.21,anio:2025,arr:"",renta:0,va:4317306,vm:5162725,adeudo:1683749.34,g:{predial:0,mantto:0,repar:0,inter:0},pago:{mensualidad:43173,done:23,total:32,pagoFinal:1295191,fecha:null,nota:"Contra escritura"}},
+    {id:"zafiro36",name:"Terreno Zafiro 36",sub:"",emp:"TERRALIA",tipo:"Terreno",ciudad:"Zapopan",zona:"Bugambilias",estatus:"Desarrollo Futuro",cur:"MXN",m2:353.67,anio:2026,arr:"",renta:0,va:3890370,vm:4774545,adeudo:0,g:{predial:0,mantto:0,repar:0,inter:0},pago:null},
+    {id:"ceibas73",name:"Terreno Ceibas 73",sub:"Ceibas UP 73",emp:"FORTIA",tipo:"Terreno",ciudad:"Zapopan",zona:"Bugambilias",estatus:"Desarrollo Futuro",cur:"MXN",m2:258.97,anio:2026,arr:"",renta:0,va:4140719.77,vm:4661460,adeudo:2484432.08,g:{predial:0,mantto:0,repar:0,inter:0},pago:{mensualidad:0,pagoFinal:2484432.08,fecha:"2027-06",nota:"Pago final · entrega junio 2027"}},
+    {id:"ceibas74",name:"Terreno Ceibas 74",sub:"Ceibas UP 74",emp:"FORTIA",tipo:"Terreno",ciudad:"Zapopan",zona:"Bugambilias",estatus:"Desarrollo Futuro",cur:"MXN",m2:259.10,anio:2026,arr:"",renta:0,va:4140798.38,vm:4663800,adeudo:2483782.95,g:{predial:0,mantto:0,repar:0,inter:0},pago:{mensualidad:0,pagoFinal:2483782.95,fecha:"2027-06",nota:"Pago final · entrega junio 2027"}},
+    {id:"ceibas75",name:"Terreno Ceibas 75",sub:"Ceibas UP 75",emp:"FORTIA",tipo:"Terreno",ciudad:"Zapopan",zona:"Bugambilias",estatus:"Desarrollo Futuro",cur:"MXN",m2:259.10,anio:2026,arr:"",renta:0,va:4140798.38,vm:4663800,adeudo:2483782.95,g:{predial:0,mantto:0,repar:0,inter:0},pago:{mensualidad:0,pagoFinal:2483782.95,fecha:"2027-06",nota:"Pago final · entrega junio 2027"}},
+    {id:"peninsulaphe",name:"Península PHE",sub:"Fase 1 · PHE-10",emp:"TERRALIA",tipo:"Vacacional",ciudad:"Nuevo Vallarta",zona:"",estatus:"Uso Corporativo",cur:"MXN",m2:210.21,anio:2022,arr:"Socios",renta:0,va:18000000,vm:23000000,adeudo:0,g:{predial:0,mantto:10684.58,repar:0,inter:0},pago:null},
+    {id:"peninsula1l",name:"Península 1L",sub:"Fase 1",emp:"MASLOW",tipo:"Vacacional",ciudad:"Nuevo Vallarta",zona:"",estatus:"En operación",cur:"MXN",m2:211.58,anio:2025,arr:"Varios",renta:60000,va:14500000,vm:17000000,adeudo:0,g:{predial:0,mantto:10758.83,repar:0,inter:0},pago:null},
+    {id:"flamingos",name:"Flamingos N.V.",sub:"Reserva",emp:"TERRALIA",tipo:"Terreno",ciudad:"Nuevo Vallarta",zona:"Flamingos",estatus:"Reserva patrimonial",cur:"USD",m2:0,anio:2023,arr:"",renta:0,va:1720715.58,vm:1720715.58,adeudo:0,g:{predial:0,mantto:0,repar:0,inter:0},pago:null},
+    {id:"thompson",name:"Thompson Residences",sub:"UP 2406",emp:"MASLOW",tipo:"Vacacional",ciudad:"Puerto Vallarta",zona:"",estatus:"En Construcción",cur:"MXN",m2:219.94,anio:2024,arr:"",renta:0,va:25001847,vm:32390838,adeudo:13500997.29,g:{predial:0,mantto:0,repar:0,inter:0},pago:{mensualidad:291688.22,done:16,total:30,pagoFinal:10000738.65,fecha:null,nota:"Contra escritura"}},
+    {id:"palco",name:"Palco Estadio Akron",sub:"PL1-164",emp:"FERTI FORTE",tipo:"Recreativo",ciudad:"Zapopan",zona:"",estatus:"Uso Corporativo",cur:"MXN",m2:0,anio:2026,arr:"",renta:0,va:3272552,vm:3272552,adeudo:327255,g:{predial:0,mantto:0,repar:0,inter:0},pago:{mensualidad:0,pagoFinal:327255,fecha:"2026-10",nota:"Último pago 15/10/26"}},
+    {id:"oficinas",name:"Oficinas Bugambilias",sub:"",emp:"TERRALIA",tipo:"Oficinas",ciudad:"Zapopan",zona:"",estatus:"Rentado",cur:"MXN",m2:558.20,anio:2022,arr:"Chemblue",renta:45000,va:11345000,vm:13500000,adeudo:0,g:{predial:0,mantto:0,repar:0,inter:0},pago:null},
+    {id:"minatitlan",name:"Patio Minatitlán",sub:"Terreno industrial",emp:"TERRALIA",tipo:"Industrial",ciudad:"Minatitlán",zona:"",estatus:"Rentado",cur:"MXN",m2:12500,anio:2023,arr:"Transportes Altur",renta:90000,va:25000000,vm:38000000,adeudo:0,g:{predial:0,mantto:0,repar:0,inter:0},pago:null},
+    {id:"ibiza",name:"Ibiza Port San Miquel",sub:"16 Chalets",emp:"GRATIL",tipo:"Internacional",ciudad:"Ibiza",zona:"Port San Miquel",estatus:"En Construcción",cur:"EUR",m2:0,anio:2025,arr:"",renta:0,va:3315000,vm:4816926.93,adeudo:0,g:{predial:0,mantto:0,repar:0,inter:0},pago:null},
+    {id:"boadilla",name:"Monte de las Encinas",sub:"7 Chalets · Boadilla",emp:"GRATIL",tipo:"Internacional",ciudad:"Madrid",zona:"Boadilla",estatus:"En Construcción",cur:"EUR",m2:0,anio:2025,arr:"",renta:0,va:1092630,vm:1592945.28,adeudo:0,g:{predial:0,mantto:0,repar:0,inter:0},pago:null}
+  ],
+  gastos:[
+    {id:"gs1",fecha:"2026-01-15",propId:"ventura",tipo:"Mantenimiento",monto:78000,nota:"Mantenimiento anual"},
+    {id:"gs2",fecha:"2026-01-15",propId:"puntosur",tipo:"Mantenimiento",monto:81984,nota:""},
+    {id:"gs3",fecha:"2026-01-15",propId:"tresmarias",tipo:"Mantenimiento",monto:220800,nota:"Cuota club de golf"},
+    {id:"gs4",fecha:"2026-05-10",propId:"peninsulaphe",tipo:"Mantenimiento",monto:128215,nota:"Mtto anual"},
+    {id:"gs5",fecha:"2026-05-10",propId:"peninsula1l",tipo:"Mantenimiento",monto:129106,nota:"Mtto anual"}
+  ]
+};
+</script>
+<script>
+/* ================= ESTADO ================= */
+const LS_KEY='abm_inmob_v2';
+let state = normalize(load());
+function load(){ try{const s=localStorage.getItem(LS_KEY);if(s)return JSON.parse(s);}catch(e){} return structuredClone(SEED); }
+function normalize(s){
+  s.fx=s.fx||{EUR:19.81,USD:17.46};
+  s.props=(s.props||[]).map(p=>{const q={img:'',...p};delete q.g;return q;});
+  if(!Array.isArray(s.gastos)) s.gastos=structuredClone(SEED.gastos||[]);
+  return s;
+}
+function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){toast('No se pudo guardar (¿imagen muy grande?)');} }
+function resetData(){ state=normalize(structuredClone(SEED)); save(); renderAll(); toast('Datos restablecidos al valor base'); }
+
+const TODAY=new Date(2026,7,10);
+const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const TIPOS_GASTO=['Predial','Mantenimiento','Reparaciones','Interiorismo','Otro'];
+const TIPO_ORDER=['Residencial','Vertical','Vacacional','Terreno','Oficinas','Industrial','Recreativo','Internacional'];
+const EMP_ORDER=['TERRALIA','MASLOW','SOCIOS','FORTIA','FERTI FORTE','GRATIL'];
+const ESTATUS=['Rentado','En operación','En Construcción','Desarrollo Futuro','Uso Corporativo','Reserva patrimonial','En proceso de venta'];
+const CUR=['MXN','EUR','USD'];
+
+/* ================= UTILIDADES ================= */
+const fx=()=>state.fx;
+const toMXN=(v,cur)=>cur==='MXN'?v:v*(fx()[cur]||1);
+function gastosAnual(propId){
+  const lim=new Date(TODAY);lim.setFullYear(lim.getFullYear()-1);
+  return state.gastos.filter(g=>g.propId===propId&&new Date(g.fecha)>=lim).reduce((s,g)=>s+(+g.monto||0),0);
+}
+function computed(p){
+  const plus=p.vm-p.va,plusPct=p.va?plus/p.va:0,patr=p.vm-p.adeudo;
+  const rentaA=p.renta*12,gastosA=gastosAnual(p.id);
+  const yB=p.vm?rentaA/p.vm:0,yN=p.vm?(rentaA-gastosA)/p.vm:0,ltv=p.vm?p.adeudo/p.vm:0;
+  return {plus,plusPct,patr,rentaA,gastosA,yB,yN,ltv,
+    vmMXN:toMXN(p.vm,p.cur),vaMXN:toMXN(p.va,p.cur),adeudoMXN:toMXN(p.adeudo,p.cur),
+    patrMXN:toMXN(patr,p.cur),plusMXN:toMXN(plus,p.cur),rentaAMXN:toMXN(rentaA,p.cur),gastosAMXN:toMXN(gastosA,p.cur)};
+}
+const sym={MXN:'$',EUR:'€',USD:'US$'};
+const money=(v,cur='MXN',dec=0)=>(sym[cur]||'$')+' '+Number(v||0).toLocaleString('es-MX',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+const pct=(v,d=2)=>(v*100).toLocaleString('es-MX',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+function short(v){const a=Math.abs(v);if(a>=1e6)return '$'+(v/1e6).toLocaleString('es-MX',{minimumFractionDigits:1,maximumFractionDigits:1})+'M';if(a>=1e3)return '$'+(v/1e3).toLocaleString('es-MX',{maximumFractionDigits:0})+'k';return '$'+Math.round(v);}
+const monthKey=(y,m)=>y+'-'+String(m+1).padStart(2,'0');
+const fmtMes=s=>{const[y,m]=s.split('-').map(Number);return MONTHS[m-1]+' '+y;};
+const fmtFecha=s=>{const d=new Date(s);return String(d.getDate()).padStart(2,'0')+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();};
+const propName=id=>{const p=state.props.find(x=>x.id===id);return p?p.name:'—';};
+const estatusColor=e=>({'Rentado':'var(--sage)','En operación':'var(--sage)','En Construcción':'var(--brass)','Desarrollo Futuro':'var(--brass)','Uso Corporativo':'#7C8AA0','Reserva patrimonial':'#7C8AA0','En proceso de venta':'var(--clay)'}[e]||'var(--muted)');
+const PATTERN=`<svg class="pattern" viewBox="0 0 400 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#24382F"/><stop offset="1" stop-color="#16241E"/></linearGradient></defs><rect width="400" height="160" fill="url(#g)"/><g stroke="#B4894C" stroke-width="1" opacity="0.22" fill="none"><path d="M60 160 L60 70 L120 40 L180 70 L180 160"/><path d="M120 40 L120 20 L150 8 L180 20 L180 70"/><path d="M200 160 L200 55 L280 55 L280 160 M230 55 L230 25 L250 25 L250 55"/><path d="M300 160 L300 80 L360 80 L360 160"/></g></svg>`;
+const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'').slice(0,16)+Math.random().toString(36).slice(2,5);
+const uid=()=>'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+
+/* ================= NAV ================= */
+const VIEWS=['catalogo','analisis','adeudos','gastos','parametros'];
+const TITLES={catalogo:['Cartera de inmuebles','Catálogo de propiedades'],analisis:['Indicadores de desempeño','Análisis del portafolio'],adeudos:['Compromisos financieros','Adeudos y flujo de pagos'],gastos:['Costos de operación','Gastos por propiedad'],parametros:['Configuración','Parámetros e integración']};
+function nav(v){VIEWS.forEach(x=>document.getElementById('view-'+x).classList.toggle('hidden',x!==v));
+  document.querySelectorAll('.navlink').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  document.getElementById('tb-eyebrow').textContent=TITLES[v][0];document.getElementById('tb-title').textContent=TITLES[v][1];
+  document.getElementById('sidebar').classList.remove('open');window.scrollTo(0,0);}
+document.querySelectorAll('.navlink').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.view)));
+document.getElementById('menuBtn').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
+
+/* ================= KPIs ================= */
+function kpiStrip(){
+  let vm=0,va=0,adeudo=0,patr=0,rentaA=0;
+  state.props.forEach(p=>{const c=computed(p);vm+=c.vmMXN;va+=c.vaMXN;adeudo+=c.adeudoMXN;patr+=c.patrMXN;rentaA+=c.rentaAMXN;});
+  const plus=vm-va,plusPct=va?plus/va:0,ltv=vm?adeudo/vm:0;
+  return `<div class="kpis">
+    <div class="kpi"><div class="k-lab">Inmuebles</div><div class="k-val">${state.props.length}</div><div class="k-sub">${new Set(state.props.map(p=>p.emp)).size} empresas</div></div>
+    <div class="kpi"><div class="k-lab">Valor de mercado</div><div class="k-val sm">${money(vm)}</div></div>
+    <div class="kpi"><div class="k-lab">Plusvalía</div><div class="k-val sm">${money(plus)}</div><div class="k-sub">${pct(plusPct)}</div></div>
+    <div class="kpi"><div class="k-lab">Patrimonio neto</div><div class="k-val sm">${money(patr)}</div></div>
+    <div class="kpi"><div class="k-lab">Adeudo total</div><div class="k-val sm" style="color:var(--clay)">${money(adeudo)}</div></div>
+    <div class="kpi"><div class="k-lab">LTV / Renta anual</div><div class="k-val sm">${pct(ltv)}</div><div class="k-sub">${short(rentaA)}/año</div></div>
+  </div>`;
+}
+
+/* ================= CATÁLOGO ================= */
+let filterTipo='Todos',filterEmp='Todos',groupBy='tipo';
+function bannerHTML(p){ return p.img?`<div class="pcard-img" style="background-image:url('${p.img}')"></div><div class="img-scrim"></div>`:PATTERN; }
+function pcard(p){
+  const c=computed(p);
+  const flag=p.cur!=='MXN'?`<span class="flag">${p.cur==='EUR'?'España':'USD'} · ${p.cur}</span>`:'';
+  return `<div class="pcard" data-id="${p.id}">
+    <div class="banner ${p.img?'has-img':''}">${bannerHTML(p)}
+      <span class="tipo-tag">${p.tipo}</span>
+      <span class="estatus"><span class="dot" style="background:${estatusColor(p.estatus)}"></span>${p.estatus}</span>${flag}</div>
+    <div class="body"><div class="emp">${p.emp}</div><h3>${p.name}</h3>
+      <div class="loc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${p.ciudad}${p.zona?' · '+p.zona:''}${p.m2?' · '+(+p.m2).toLocaleString('es-MX')+' m²':''}</div>
+      <div class="mstrip">
+        <div class="m"><div class="m-l">Valor mercado</div><div class="m-v">${money(p.vm,p.cur)}</div></div>
+        <div class="m"><div class="m-l">Plusvalía</div><div class="m-v pos">${pct(c.plusPct)}</div></div>
+        <div class="m"><div class="m-l">${p.renta?'Yield':'Adeudo'}</div><div class="m-v ${p.renta?'':(p.adeudo?'debt':'')}">${p.renta?pct(c.yB):money(p.adeudo,p.cur)}</div></div>
+        <div class="m"><div class="m-l">LTV</div><div class="m-v ${c.ltv?'debt':''}">${pct(c.ltv)}</div></div>
+      </div></div></div>`;
+}
+function renderCatalogo(){
+  const el=document.getElementById('view-catalogo');
+  const tipos=['Todos',...TIPO_ORDER.filter(t=>state.props.some(p=>p.tipo===t))];
+  const emps=['Todos',...EMP_ORDER.filter(e=>state.props.some(p=>p.emp===e))];
+  const cnt=(k,v)=>state.props.filter(p=>p[k]===v).length;
+  let filtered=state.props.filter(p=>(filterTipo==='Todos'||p.tipo===filterTipo)&&(filterEmp==='Todos'||p.emp===filterEmp));
+  let cards='';
+  if(groupBy==='none') cards=filtered.map(pcard).join('');
+  else{const order=groupBy==='tipo'?TIPO_ORDER:EMP_ORDER,key=groupBy;
+    order.forEach(g=>{const items=filtered.filter(p=>p[key]===g);if(!items.length)return;
+      cards+=`<div class="grouplabel"><h3>${g}</h3><div class="rule"></div><span class="n">${items.length} ${items.length===1?'inmueble':'inmuebles'}</span></div>`+items.map(pcard).join('');});}
+  el.innerHTML=kpiStrip()+`
+    <div class="filters">
+      <div class="filter-grp"><div class="f-lab">Tipo</div><div class="chips" id="chips-tipo">${tipos.map(t=>`<button class="chip ${filterTipo===t?'active':''}" data-t="${t}">${t}${t!=='Todos'?`<span class="ct">${cnt('tipo',t)}</span>`:''}</button>`).join('')}</div></div>
+      <div class="filter-grp"><div class="f-lab">Empresa</div><div class="chips" id="chips-emp">${emps.map(e=>`<button class="chip ${filterEmp===e?'active':''}" data-e="${e}">${e}</button>`).join('')}</div></div>
+      <div class="filter-grp"><div class="f-lab">Agrupar</div><div class="chips" id="chips-group">
+        <button class="chip ${groupBy==='tipo'?'active':''}" data-g="tipo">Tipo</button>
+        <button class="chip ${groupBy==='emp'?'active':''}" data-g="emp">Empresa</button>
+        <button class="chip ${groupBy==='none'?'active':''}" data-g="none">Sin agrupar</button></div></div>
+      <button class="btn btn-primary addbtn" id="add-prop"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Agregar propiedad</button>
+    </div>
+    <div class="grid">${cards||'<p class="muted">Sin propiedades para este filtro.</p>'}</div>`;
+  el.querySelectorAll('#chips-tipo .chip').forEach(c=>c.onclick=()=>{filterTipo=c.dataset.t;renderCatalogo();});
+  el.querySelectorAll('#chips-emp .chip').forEach(c=>c.onclick=()=>{filterEmp=c.dataset.e;renderCatalogo();});
+  el.querySelectorAll('#chips-group .chip').forEach(c=>c.onclick=()=>{groupBy=c.dataset.g;renderCatalogo();});
+  el.querySelector('#add-prop').onclick=()=>openPropForm(null);
+  el.querySelectorAll('.pcard').forEach(c=>c.onclick=()=>openFicha(c.dataset.id));
+}
+
+/* ================= ANÁLISIS ================= */
+function rankTable(title,desc,rows,cols){return `<div class="tablewrap"><div class="tbl-head"><div><h3>${title}</h3></div><div class="desc">${desc}</div></div><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;}
+function renderAnalisis(){
+  const el=document.getElementById('view-analisis');
+  const arr=state.props.map(p=>({p,c:computed(p)}));
+  const plus=[...arr].filter(x=>x.c.plus!==0).sort((a,b)=>b.c.plusPct-a.c.plusPct).slice(0,8);
+  const yld=[...arr].filter(x=>x.p.renta>0).sort((a,b)=>b.c.yB-a.c.yB);
+  const lev=[...arr].filter(x=>x.c.ltv>0).sort((a,b)=>b.c.ltv-a.c.ltv);
+  const maxP=Math.max(...plus.map(x=>x.c.plusPct),0.0001),maxL=Math.max(...lev.map(x=>x.c.ltv),0.0001);
+  const rp=plus.map((x,i)=>`<tr><td><span class="rank">${i+1}</span>${x.p.name}</td><td class="muted">${x.p.emp}</td><td class="num pos bar-cell">${pct(x.c.plusPct)}<span class="bar" style="width:${(x.c.plusPct/maxP*90).toFixed(0)}px"></span></td><td class="num">${x.p.va?pct(Math.pow(x.p.vm/x.p.va,1/Math.max(1,2026-x.p.anio))-1):'—'}</td><td class="num">${money(x.c.plusMXN)}</td></tr>`).join('');
+  const ry=yld.map((x,i)=>`<tr><td><span class="rank">${i+1}</span>${x.p.name}</td><td class="muted">${x.p.emp}</td><td class="num pos">${pct(x.c.yB)}</td><td class="num">${pct(x.c.yN)}</td><td class="num">${money(x.c.rentaAMXN)}</td></tr>`).join('');
+  const rl=lev.map((x,i)=>`<tr><td><span class="rank">${i+1}</span>${x.p.name}</td><td class="muted">${x.p.emp}</td><td class="num debt bar-cell">${pct(x.c.ltv)}<span class="bar" style="width:${(x.c.ltv/maxL*90).toFixed(0)}px;background:var(--clay)"></span></td><td class="num">${money(x.c.adeudoMXN)}</td><td class="num">${money(x.c.vmMXN)}</td></tr>`).join('');
+  el.innerHTML=kpiStrip()+rankTable('Mayor plusvalía','Crecimiento del valor respecto a la inversión inicial.',rp,['Inmueble','Empresa','Plusvalía %','CAGR','Plusvalía (MXN)'])+rankTable('Mejor yield','Rendimiento anual por renta. El yield neto descuenta gastos de los últimos 12 meses.',ry,['Inmueble','Empresa','Yield bruto','Yield neto','Renta anual'])+rankTable('Mayor apalancamiento (LTV)','Porcentaje del valor financiado con deuda.',rl,['Inmueble','Empresa','LTV','Adeudo','Valor mercado']);
+}
+
+/* ================= ADEUDOS Y FLUJO ================= */
+function buildFlow(){
+  const flows={};
+  const add=(y,m,name,amt,tipo)=>{const k=monthKey(y,m);(flows[k]??={total:0,items:[]});flows[k].total+=amt;flows[k].items.push({name,amt,tipo});};
+  state.props.forEach(p=>{if(!p.pago)return;const pg=p.pago;const ade=toMXN(p.adeudo,p.cur);const final=pg.pagoFinal?toMXN(pg.pagoFinal,p.cur):0;
+    if(pg.mensualidad>0){const rem=Math.max(0,Math.round((ade-final)/pg.mensualidad));let y=2026,m=8;
+      for(let i=0;i<rem;i++){add(y,m,p.name,toMXN(pg.mensualidad,p.cur),'mensual');m++;if(m>11){m=0;y++;}}
+      if(final>0){if(pg.fecha){const[fy,fm]=pg.fecha.split('-').map(Number);add(fy,fm-1,p.name,final,'final');}else add(y,m,p.name,final,'final');}}
+    else if(final>0&&pg.fecha){const[fy,fm]=pg.fecha.split('-').map(Number);add(fy,fm-1,p.name,final,'final');}});
+  return flows;
+}
+function renderAdeudos(){
+  const el=document.getElementById('view-adeudos');
+  const debtors=state.props.filter(p=>p.adeudo>0).map(p=>({p,c:computed(p)})).sort((a,b)=>b.c.adeudoMXN-a.c.adeudoMXN);
+  const totAde=debtors.reduce((s,x)=>s+x.c.adeudoMXN,0);
+  const rows=debtors.map(x=>{const pg=x.p.pago||{};const rem=pg.mensualidad>0?Math.max(0,Math.round((x.c.adeudoMXN-(pg.pagoFinal?toMXN(pg.pagoFinal,x.p.cur):0))/toMXN(pg.mensualidad,x.p.cur))):(pg.pagoFinal?1:0);
+    return `<tr data-id="${x.p.id}" style="cursor:pointer"><td>${x.p.name}<div style="font-size:10px;color:var(--muted);font-weight:400">${x.p.emp}${pg.nota?' · '+pg.nota:''}</div></td>
+      <td class="num debt">${money(x.c.adeudoMXN)}</td><td class="num">${pg.mensualidad>0?money(pg.mensualidad,x.p.cur):'—'}</td>
+      <td class="num">${pg.total?pg.done+'/'+pg.total:'—'}</td><td class="num">${rem||'—'}</td>
+      <td class="num">${pg.pagoFinal?money(pg.pagoFinal,x.p.cur):'—'}</td><td class="num">${pg.fecha?fmtMes(pg.fecha):'—'}</td></tr>`;}).join('');
+  const flows=buildFlow();const keys=Object.keys(flows).sort();const maxV=Math.max(...keys.map(k=>flows[k].total),1);
+  const bars=keys.map(k=>{const f=flows[k];const h=f.total/maxV*100;const big=f.total>maxV*0.55;const[y,m]=k.split('-').map(Number);
+    return `<div class="fb"><div class="col ${big?'big':''}" style="height:${Math.max(2,h)}%"><span class="tip">${MONTHS[m-1]} ${y} · ${money(f.total)}</span></div><div class="lab">${MONTHS[m-1]} ${String(y).slice(2)}</div></div>`;}).join('');
+  const totFlow=keys.reduce((s,k)=>s+flows[k].total,0);const next3=keys.slice(0,3).reduce((s,k)=>s+flows[k].total,0);
+  el.innerHTML=kpiStrip()+`
+    <div class="tablewrap"><div class="tbl-head"><div><h3>Adeudos por propiedad</h3></div>
+      <div style="display:flex;gap:12px;align-items:center"><div class="desc">Calendario de pagos: mensualidad, cuotas y pago final.</div>
+      <button class="btn btn-primary addbtn" id="add-adeudo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Registrar adeudo</button></div></div>
+      <table><thead><tr><th>Inmueble</th><th>Adeudo</th><th>Mensualidad</th><th>Cuotas</th><th>Restantes</th><th>Pago final</th><th>Fecha final</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="7" class="muted" style="text-align:center;padding:22px">Sin adeudos registrados. Usa “Registrar adeudo”.</td></tr>'}${debtors.length?`<tr class="total-row"><td>Total</td><td class="num debt">${money(totAde)}</td><td colspan="5"></td></tr>`:''}</tbody></table></div>
+    <div class="flowchart"><div class="sec-head" style="margin-bottom:6px"><div><div class="eyebrow">Proyección de egresos</div><h2 style="font-size:20px">Flujo de pagos por mes</h2></div>
+      <div style="text-align:right"><div class="muted" style="font-size:11px">Próximos 3 meses</div><div class="mono" style="font-size:17px;font-weight:600;color:var(--clay)">${money(next3)}</div></div></div>
+      <p class="muted" style="font-size:11.5px;max-width:620px">Distribución mensual de los ${money(totFlow)} comprometidos, calculada desde las mensualidades y pagos finales. En terracota, los pagos finales (contra escritura).</p>
+      <div class="flowbars">${bars||'<p class="muted">Registra un adeudo para ver el flujo.</p>'}</div></div>`;
+  el.querySelector('#add-adeudo').onclick=()=>pickPropertyThen(id=>openPropForm(id,'pago'));
+  el.querySelectorAll('tbody tr[data-id]').forEach(r=>r.onclick=()=>openPropForm(r.dataset.id,'pago'));
+}
+
+/* ================= GASTOS ================= */
+let gProp='Todos',gDesde='',gHasta='';
+function renderGastos(){
+  const el=document.getElementById('view-gastos');
+  let list=[...state.gastos].sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  if(gProp!=='Todos')list=list.filter(g=>g.propId===gProp);
+  if(gDesde)list=list.filter(g=>g.fecha>=gDesde);
+  if(gHasta)list=list.filter(g=>g.fecha<=gHasta);
+  const propsSorted=state.props.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const totByTipo={};let tot=0;
+  list.forEach(g=>{const p=state.props.find(x=>x.id===g.propId);const mxn=p?toMXN(+g.monto,p.cur):+g.monto;totByTipo[g.tipo]=(totByTipo[g.tipo]||0)+mxn;tot+=mxn;});
+  const rows=list.map(g=>{const p=state.props.find(x=>x.id===g.propId);const cur=p?p.cur:'MXN';
+    return `<tr><td>${fmtFecha(g.fecha)}</td><td>${propName(g.propId)}</td><td><span class="tipo-badge">${g.tipo}</span></td><td class="num">${money(g.monto,cur)}</td><td style="text-align:center"><button class="del-x" data-del="${g.id}" title="Eliminar">×</button></td></tr>`;}).join('');
+  const chips=Object.keys(totByTipo).map(t=>`<span class="tot-chip"><b>${t}</b> ${money(totByTipo[t])}</span>`).join('');
+  el.innerHTML=kpiStrip()+`
+    <div class="gasto-bar">
+      <div class="filter-grp"><div class="f-lab">Propiedad</div><select id="gf-prop"><option value="Todos">Todas</option>${propsSorted.map(p=>`<option value="${p.id}" ${gProp===p.id?'selected':''}>${p.name}</option>`).join('')}</select></div>
+      <div class="filter-grp"><div class="f-lab">Desde</div><input type="date" id="gf-desde" value="${gDesde}"></div>
+      <div class="filter-grp"><div class="f-lab">Hasta</div><input type="date" id="gf-hasta" value="${gHasta}"></div>
+      ${(gProp!=='Todos'||gDesde||gHasta)?'<button class="btn btn-ghost sm" id="gf-clear">Limpiar</button>':''}
+      <button class="btn btn-primary addbtn" id="add-gasto" style="margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Agregar gasto</button>
+    </div>
+    ${chips?`<div class="tot-chips">${chips}<span class="tot-chip main"><b>Total</b> ${money(tot)}</span></div>`:''}
+    <div class="tablewrap"><div class="tbl-head"><div><h3>Registro de gastos</h3></div><div class="desc">${list.length} movimiento${list.length===1?'':'s'} · Predial · Mantenimiento · Reparaciones · Interiorismo</div></div>
+      <table><thead><tr><th>Fecha</th><th>Propiedad</th><th>Tipo</th><th>Monto</th><th style="text-align:center">—</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" class="muted" style="text-align:center;padding:26px">Sin gastos para este filtro. Usa “Agregar gasto”.</td></tr>'}</tbody></table></div>`;
+  el.querySelector('#gf-prop').onchange=e=>{gProp=e.target.value;renderGastos();};
+  el.querySelector('#gf-desde').onchange=e=>{gDesde=e.target.value;renderGastos();};
+  el.querySelector('#gf-hasta').onchange=e=>{gHasta=e.target.value;renderGastos();};
+  const clr=el.querySelector('#gf-clear');if(clr)clr.onclick=()=>{gProp='Todos';gDesde='';gHasta='';renderGastos();};
+  el.querySelector('#add-gasto').onclick=()=>openGastoForm();
+  el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(confirm('¿Eliminar este gasto?')){state.gastos=state.gastos.filter(g=>g.id!==b.dataset.del);save();renderGastos();renderAll(false);toast('Gasto eliminado');}});
+}
+
+/* ================= PARÁMETROS ================= */
+function renderParametros(){
+  const el=document.getElementById('view-parametros');
+  el.innerHTML=`<p class="gastos-note">Tipos de cambio para integrar euros (España) y dólares en la vista consolidada en pesos.</p>
+    <div class="params-grid">
+      <div class="param-card"><div class="pc-lab">Tipo de cambio · Euro</div><div class="pc-in"><span class="cur">MXN / €</span><input type="number" step="0.0001" id="fx-eur" value="${fx().EUR}"></div></div>
+      <div class="param-card"><div class="pc-lab">Tipo de cambio · Dólar</div><div class="pc-in"><span class="cur">MXN / US$</span><input type="number" step="0.0001" id="fx-usd" value="${fx().USD}"></div></div>
+      <div class="param-card"><div class="pc-lab">Fecha de consulta</div><div class="pc-in"><span class="mono" style="font-size:17px;font-weight:600">10 / 08 / 2026</span></div></div>
+    </div>
+    <div class="admin-card" style="max-width:620px"><div class="d-lab" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-deep);font-weight:600;margin-bottom:12px">Datos</div>
+      <p class="muted" style="font-size:12.5px;margin-bottom:16px">Los cambios se guardan en este navegador. Descarga un respaldo o restablece los valores base.</p>
+      <div class="form-actions" style="margin-top:0"><button class="btn btn-primary" id="btn-export"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Descargar respaldo</button><button class="btn btn-ghost" id="btn-reset">Restablecer datos base</button></div></div>`;
+  const upd=()=>{state.fx.EUR=parseFloat(document.getElementById('fx-eur').value)||state.fx.EUR;state.fx.USD=parseFloat(document.getElementById('fx-usd').value)||state.fx.USD;save();fxLabels();renderAll(false);toast('Tipo de cambio actualizado');};
+  document.getElementById('fx-eur').addEventListener('change',upd);document.getElementById('fx-usd').addEventListener('change',upd);
+  document.getElementById('btn-export').onclick=exportData;
+  document.getElementById('btn-reset').onclick=()=>{if(confirm('¿Restablecer todos los datos a los valores base?'))resetData();};
+}
+function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='portafolio_'+Date.now()+'.json';a.click();toast('Respaldo descargado');}
+
+/* ================= FICHA ================= */
+let openId=null;
+function openFicha(id){
+  openId=id;const p=state.props.find(x=>x.id===id);if(!p)return;const c=computed(p);
+  const heroStyle=p.img?`style="background-image:linear-gradient(180deg,rgba(20,35,28,.35),rgba(20,35,28,.85)),url('${p.img}');background-size:cover;background-position:center"`:'';
+  const d=document.getElementById('drawer');
+  d.innerHTML=`<div class="drawer-hero" ${heroStyle}>${p.img?'':PATTERN}
+    <button class="close" id="d-close">×</button>
+    <div class="rel"><div class="emp">${p.emp} · ${p.tipo}</div><h2>${p.name}</h2>
+      <div class="sub">${p.sub?p.sub+' · ':''}${p.ciudad}${p.zona?' · '+p.zona:''}${p.m2?' · '+(+p.m2).toLocaleString('es-MX')+' m²':''}</div>
+      <div class="tags"><span class="dtag brass">${p.estatus}</span>${p.cur!=='MXN'?`<span class="dtag">Moneda ${p.cur}</span>`:''}${p.arr?`<span class="dtag">Arrendatario: ${p.arr}</span>`:''}<span class="dtag">Adq. ${p.anio}</span></div>
+      <div class="hero-actions"><button class="btn-hero" id="d-edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Editar</button>
+      <button class="btn-hero danger" id="d-del"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Eliminar</button></div>
+    </div></div>
+    <div class="drawer-body">
+      <div class="d-section"><div class="d-lab">Valuación${p.cur!=='MXN'?` · en ${p.cur}`:''}<div class="rule"></div></div>
+        <div class="metrics-grid">
+          <div class="metric"><div class="ml">Adquisición</div><div class="mv sm">${money(p.va,p.cur)}</div></div>
+          <div class="metric"><div class="ml">Valor de mercado</div><div class="mv sm">${money(p.vm,p.cur)}</div></div>
+          <div class="metric"><div class="ml">Plusvalía</div><div class="mv sm pos">${money(c.plus,p.cur)}</div></div>
+          <div class="metric"><div class="ml">Plusvalía %</div><div class="mv pos">${pct(c.plusPct)}</div></div>
+          <div class="metric"><div class="ml">Patrimonio neto</div><div class="mv sm">${money(c.patr,p.cur)}</div></div>
+          <div class="metric"><div class="ml">Adeudo</div><div class="mv sm ${p.adeudo?'debt':''}">${money(p.adeudo,p.cur)}</div></div></div></div>
+      <div class="d-section"><div class="d-lab">Rendimiento<div class="rule"></div></div>
+        <div class="metrics-grid">
+          <div class="metric"><div class="ml">Yield bruto</div><div class="mv">${pct(c.yB)}</div></div>
+          <div class="metric"><div class="ml">Yield neto</div><div class="mv">${pct(c.yN)}</div></div>
+          <div class="metric"><div class="ml">LTV</div><div class="mv ${c.ltv?'debt':''}">${pct(c.ltv)}</div></div>
+          ${p.renta?`<div class="metric"><div class="ml">Renta mensual</div><div class="mv sm">${money(p.renta,p.cur)}</div></div>`:''}
+          <div class="metric"><div class="ml">Renta anual</div><div class="mv sm">${money(c.rentaA,p.cur)}</div></div>
+          <div class="metric"><div class="ml">Gastos 12m</div><div class="mv sm">${money(c.gastosA,p.cur)}</div></div></div></div>
+      ${p.cur!=='MXN'?`<div class="d-section"><div class="d-lab">Integración en pesos · TC ${fx()[p.cur]}<div class="rule"></div></div><div class="metrics-grid"><div class="metric"><div class="ml">Valor mercado (MXN)</div><div class="mv sm">${money(c.vmMXN)}</div></div><div class="metric"><div class="ml">Patrimonio (MXN)</div><div class="mv sm">${money(c.patrMXN)}</div></div><div class="metric"><div class="ml">Plusvalía (MXN)</div><div class="mv sm pos">${money(c.plusMXN)}</div></div></div></div>`:''}
+      ${p.pago?`<div class="d-section"><div class="d-lab">Calendario de pagos<div class="rule"></div></div><div class="admin-card"><div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
+        ${p.pago.mensualidad>0?`<div><div class="mini-l">Mensualidad</div><div class="mono mini-v">${money(p.pago.mensualidad,p.cur)}</div></div>`:''}
+        ${p.pago.total?`<div><div class="mini-l">Cuotas</div><div class="mono mini-v">${p.pago.done}/${p.pago.total}</div></div>`:''}
+        ${p.pago.pagoFinal?`<div><div class="mini-l">Pago final</div><div class="mono mini-v">${money(p.pago.pagoFinal,p.cur)}</div></div>`:''}
+        </div>${p.pago.nota?`<p class="muted" style="font-size:12px;margin-top:12px">${p.pago.nota}${p.pago.fecha?' · '+fmtMes(p.pago.fecha):''}</p>`:''}
+        <div class="form-actions" style="margin-top:14px"><button class="btn btn-ghost sm" id="d-pago">Editar plan de pagos</button></div></div></div>`:`
+      <div class="d-section"><div class="admin-card" style="text-align:center;padding:20px"><p class="muted" style="font-size:12.5px;margin-bottom:12px">Sin adeudo ni calendario de pagos registrado.</p><button class="btn btn-primary sm" id="d-pago">Registrar adeudo y pagos</button></div></div>`}
+      <div class="d-section"><div class="d-lab">Administración rápida<div class="rule"></div></div>
+        <div class="admin-card"><div class="form-grid">
+          <div class="field"><label>Valor de mercado (${p.cur})</label><input type="number" id="q-vm" value="${p.vm}"></div>
+          <div class="field"><label>Renta mensual (${p.cur})</label><input type="number" id="q-renta" value="${p.renta}"></div>
+          <div class="field"><label>Adeudo (${p.cur})</label><input type="number" id="q-adeudo" value="${p.adeudo}"></div>
+          <div class="field"><label>Valor de adquisición (${p.cur})</label><input type="number" id="q-va" value="${p.va}"></div></div>
+          <div class="form-actions"><button class="btn btn-primary" id="q-save"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Actualizar datos</button>
+          <span class="saved-flash" id="q-flash"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Recalculado</span></div></div></div>
+    </div>`;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('d-close').onclick=closeFicha;
+  document.getElementById('d-edit').onclick=()=>openPropForm(id);
+  document.getElementById('d-del').onclick=()=>delProp(id);
+  document.getElementById('d-pago').onclick=()=>openPropForm(id,'pago');
+  document.getElementById('q-save').onclick=()=>{const g=k=>parseFloat(document.getElementById(k).value)||0;p.vm=g('q-vm');p.renta=g('q-renta');p.adeudo=g('q-adeudo');p.va=g('q-va');save();const fl=document.getElementById('q-flash');fl.classList.add('show');setTimeout(()=>fl.classList.remove('show'),1800);openFicha(id);renderAll(false);toast('Datos actualizados');};
+}
+function closeFicha(){document.getElementById('overlay').classList.remove('open');openId=null;}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeFicha();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeFicha();closeModal();}});
+function delProp(id){const p=state.props.find(x=>x.id===id);if(!confirm(`¿Eliminar “${p.name}”? También se borrarán sus gastos.`))return;state.props=state.props.filter(x=>x.id!==id);state.gastos=state.gastos.filter(g=>g.propId!==id);save();closeFicha();renderAll();toast('Propiedad eliminada');}
+
+/* ================= MODAL ================= */
+function openModal(html){const m=document.getElementById('modal');m.querySelector('.modal-card').innerHTML=html;m.classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+let imgBuffer=null;
+function openPropForm(id,focus){
+  const p=id?state.props.find(x=>x.id===id):null;const isNew=!p;imgBuffer=p?p.img:'';
+  const pg=(p&&p.pago)||{mensualidad:0,done:0,total:0,pagoFinal:0,fecha:'',nota:''};
+  const opt=(arr,v)=>arr.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('');
+  openModal(`<div class="modal-head"><h3>${isNew?'Agregar propiedad':'Editar propiedad'}</h3><button class="close-m" id="m-close">×</button></div>
+    <div class="modal-body">
+      <div class="d-lab2">Imagen de la propiedad</div>
+      <div class="imgrow"><div class="imgprev" id="imgprev" style="${imgBuffer?`background-image:url('${imgBuffer}')`:''}">${imgBuffer?'':'<span>Sin imagen</span>'}</div>
+        <div class="imgctrls"><label class="btn btn-ghost sm" style="cursor:pointer">Subir imagen<input type="file" id="m-img" accept="image/*" hidden></label>
+        <button class="btn btn-ghost sm" id="m-img-rm" style="${imgBuffer?'':'display:none'}">Quitar</button><div class="hint">JPG/PNG, máx ~1.5 MB. Se guarda en este navegador.</div></div></div>
+      <div class="d-lab2">Generales</div>
+      <div class="form-grid">
+        <div class="field"><label>Nombre</label><input id="m-name" value="${p?esc(p.name):''}" placeholder="Nombre de la propiedad"></div>
+        <div class="field"><label>Subtítulo / unidad</label><input id="m-sub" value="${p?esc(p.sub||''):''}"></div>
+        <div class="field"><label>Empresa</label><select id="m-emp">${opt(EMP_ORDER,p?p.emp:'TERRALIA')}</select></div>
+        <div class="field"><label>Tipo</label><select id="m-tipo">${opt(TIPO_ORDER,p?p.tipo:'Residencial')}</select></div>
+        <div class="field"><label>Ciudad</label><input id="m-ciudad" value="${p?esc(p.ciudad):''}"></div>
+        <div class="field"><label>Zona</label><input id="m-zona" value="${p?esc(p.zona||''):''}"></div>
+        <div class="field"><label>Estatus</label><select id="m-estatus">${opt(ESTATUS,p?p.estatus:'Rentado')}</select></div>
+        <div class="field"><label>Moneda</label><select id="m-cur">${opt(CUR,p?p.cur:'MXN')}</select></div>
+        <div class="field"><label>Superficie (m²)</label><input type="number" id="m-m2" value="${p?p.m2:0}"></div>
+        <div class="field"><label>Año adquisición</label><input type="number" id="m-anio" value="${p?p.anio:2026}"></div>
+        <div class="field full"><label>Arrendatario (si aplica)</label><input id="m-arr" value="${p?esc(p.arr||''):''}"></div>
+      </div>
+      <div class="d-lab2">Valuación y renta</div>
+      <div class="form-grid">
+        <div class="field"><label>Valor de adquisición</label><input type="number" id="m-va" value="${p?p.va:0}"></div>
+        <div class="field"><label>Valor de mercado</label><input type="number" id="m-vm" value="${p?p.vm:0}"></div>
+        <div class="field"><label>Renta mensual</label><input type="number" id="m-renta" value="${p?p.renta:0}"></div>
+        <div class="field"><label>Adeudo actual</label><input type="number" id="m-adeudo" value="${p?p.adeudo:0}"></div>
+      </div>
+      <div class="d-lab2">Adeudo de compra y calendario de pagos</div>
+      <div class="form-grid">
+        <div class="field"><label>Mensualidad</label><input type="number" id="m-mens" value="${pg.mensualidad||0}"></div>
+        <div class="field"><label>Pago final (contra escritura)</label><input type="number" id="m-final" value="${pg.pagoFinal||0}"></div>
+        <div class="field"><label>Cuotas pagadas</label><input type="number" id="m-done" value="${pg.done||0}"></div>
+        <div class="field"><label>Cuotas totales</label><input type="number" id="m-total" value="${pg.total||0}"></div>
+        <div class="field"><label>Fecha de pago final</label><input type="month" id="m-fecha" value="${pg.fecha||''}"></div>
+        <div class="field"><label>Nota del plan</label><input id="m-nota" value="${esc(pg.nota||'')}" placeholder="Ej. entrega junio 2027"></div>
+      </div>
+      <div class="modal-actions"><button class="btn btn-ghost" id="m-cancel">Cancelar</button><button class="btn btn-primary" id="m-save">${isNew?'Agregar propiedad':'Guardar cambios'}</button></div>
+    </div>`);
+  document.getElementById('m-close').onclick=closeModal;document.getElementById('m-cancel').onclick=closeModal;
+  document.getElementById('m-img-rm').onclick=()=>{imgBuffer='';const pv=document.getElementById('imgprev');pv.style.backgroundImage='';pv.innerHTML='<span>Sin imagen</span>';document.getElementById('m-img-rm').style.display='none';};
+  document.getElementById('m-img').onchange=e=>{const f=e.target.files[0];if(!f)return;if(f.size>1.6e6){toast('Imagen muy grande (máx ~1.5 MB)');return;}
+    const r=new FileReader();r.onload=()=>{imgBuffer=r.result;const pv=document.getElementById('imgprev');pv.style.backgroundImage=`url('${imgBuffer}')`;pv.innerHTML='';document.getElementById('m-img-rm').style.display='';};r.readAsDataURL(f);};
+  document.getElementById('m-save').onclick=()=>{
+    const g=k=>document.getElementById(k).value,n=k=>parseFloat(g(k))||0;
+    const name=g('m-name').trim();if(!name){toast('Escribe un nombre');return;}
+    const mens=n('m-mens'),fin=n('m-final'),tot=n('m-total');
+    const pago=(mens>0||fin>0||tot>0)?{mensualidad:mens,pagoFinal:fin,done:n('m-done'),total:tot,fecha:g('m-fecha')||null,nota:g('m-nota').trim()}:null;
+    const obj={id:p?p.id:slug(name),img:imgBuffer||'',name,sub:g('m-sub').trim(),emp:g('m-emp'),tipo:g('m-tipo'),ciudad:g('m-ciudad').trim(),zona:g('m-zona').trim(),estatus:g('m-estatus'),cur:g('m-cur'),m2:n('m-m2'),anio:n('m-anio')||2026,arr:g('m-arr').trim(),renta:n('m-renta'),va:n('m-va'),vm:n('m-vm'),adeudo:n('m-adeudo'),pago};
+    if(p)Object.assign(p,obj);else state.props.push(obj);
+    save();closeModal();renderAll(false);if(openId&&openId===obj.id)openFicha(obj.id);toast(p?'Propiedad actualizada':'Propiedad agregada');
+  };
+  if(focus==='pago')setTimeout(()=>{const e=document.getElementById('m-mens');if(e)e.focus();},120);
+}
+function esc(s){return String(s).replace(/"/g,'&quot;');}
+
+function pickPropertyThen(cb){
+  const opts=state.props.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  openModal(`<div class="modal-head"><h3>Registrar adeudo</h3><button class="close-m" id="m-close">×</button></div>
+    <div class="modal-body"><div class="field full"><label>Selecciona la propiedad</label><select id="pick">${opts}</select></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="m-cancel">Cancelar</button><button class="btn btn-primary" id="pick-go">Continuar</button></div></div>`);
+  document.getElementById('m-close').onclick=closeModal;document.getElementById('m-cancel').onclick=closeModal;
+  document.getElementById('pick-go').onclick=()=>{const id=document.getElementById('pick').value;closeModal();cb(id);};
+}
+
+function openGastoForm(){
+  const opts=state.props.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  openModal(`<div class="modal-head"><h3>Agregar gasto</h3><button class="close-m" id="m-close">×</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="field"><label>Fecha</label><input type="date" id="g-fecha" value="2026-08-10"></div>
+      <div class="field"><label>Tipo de gasto</label><select id="g-tipo">${TIPOS_GASTO.map(t=>`<option>${t}</option>`).join('')}</select></div>
+      <div class="field full"><label>Propiedad</label><select id="g-prop">${opts}</select></div>
+      <div class="field"><label>Monto</label><input type="number" id="g-monto" placeholder="0.00"></div>
+      <div class="field"><label>Nota (opcional)</label><input id="g-nota"></div>
+    </div><div class="modal-actions"><button class="btn btn-ghost" id="m-cancel">Cancelar</button><button class="btn btn-primary" id="g-save">Guardar gasto</button></div></div>`);
+  document.getElementById('m-close').onclick=closeModal;document.getElementById('m-cancel').onclick=closeModal;
+  document.getElementById('g-save').onclick=()=>{const monto=parseFloat(document.getElementById('g-monto').value)||0;if(monto<=0){toast('Escribe un monto');return;}
+    state.gastos.push({id:uid(),fecha:document.getElementById('g-fecha').value,propId:document.getElementById('g-prop').value,tipo:document.getElementById('g-tipo').value,monto,nota:document.getElementById('g-nota').value.trim()});
+    save();closeModal();nav('gastos');renderGastos();renderAll(false);toast('Gasto agregado');};
+}
+
+/* ================= TOAST / RENDER ================= */
+let toastT;
+function toast(msg){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
+function fxLabels(){document.getElementById('fx-eur-lbl').textContent=fx().EUR;document.getElementById('fx-usd-lbl').textContent=fx().USD;}
+function renderAll(reFicha=true){renderCatalogo();renderAnalisis();renderAdeudos();renderGastos();renderParametros();fxLabels();if(reFicha&&openId)openFicha(openId);}
+document.getElementById('foot-date').textContent='Base · 10 agosto 2026';
+fxLabels();renderAll();
+
+</script>
+</body>
+</html>
