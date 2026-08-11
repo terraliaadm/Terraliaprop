@@ -278,7 +278,14 @@ tr.total-row td{background:var(--paper-2);font-weight:700;border-top:2px solid v
 .mini-v{font-size:15px;font-weight:600;margin-top:4px}
 @media(max-width:960px){.imgrow{flex-direction:column;align-items:flex-start}.gasto-bar{gap:12px}}
 
+
+.import-opts{display:flex;flex-direction:column;gap:10px}
+.imp-opt{text-align:left;border:1px solid var(--line);border-radius:10px;padding:13px 15px;background:var(--card);transition:.15s;display:flex;flex-direction:column;gap:4px;width:100%}
+.imp-opt:hover{border-color:var(--brass);background:var(--paper-2)}
+.imp-opt b{font-size:14px;color:var(--ink)}
+.imp-opt span{font-size:12px;color:var(--muted)}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -365,6 +372,7 @@ let state = normalize(load());
 function load(){ try{const s=localStorage.getItem(LS_KEY);if(s)return JSON.parse(s);}catch(e){} return structuredClone(SEED); }
 function normalize(s){
   s.fx=s.fx||{EUR:19.81,USD:17.46};
+  s.github=s.github||{owner:'',repo:'',branch:'main',folder:'propiedades'};
   s.props=(s.props||[]).map(p=>{const q={img:'',...p};delete q.g;return q;});
   if(!Array.isArray(s.gastos)) s.gastos=structuredClone(SEED.gastos||[]);
   return s;
@@ -577,13 +585,138 @@ function renderParametros(){
       <div class="param-card"><div class="pc-lab">Tipo de cambio · Dólar</div><div class="pc-in"><span class="cur">MXN / US$</span><input type="number" step="0.0001" id="fx-usd" value="${fx().USD}"></div></div>
       <div class="param-card"><div class="pc-lab">Fecha de consulta</div><div class="pc-in"><span class="mono" style="font-size:17px;font-weight:600">10 / 08 / 2026</span></div></div>
     </div>
-    <div class="admin-card" style="max-width:620px"><div class="d-lab" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-deep);font-weight:600;margin-bottom:12px">Datos</div>
-      <p class="muted" style="font-size:12.5px;margin-bottom:16px">Los cambios se guardan en este navegador. Descarga un respaldo o restablece los valores base.</p>
-      <div class="form-actions" style="margin-top:0"><button class="btn btn-primary" id="btn-export"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Descargar respaldo</button><button class="btn btn-ghost" id="btn-reset">Restablecer datos base</button></div></div>`;
+    <div class="admin-card" style="max-width:720px;margin-bottom:18px"><div class="d-lab2" style="margin-top:0">Almacenamiento de imágenes en la nube · GitHub</div>
+      <p class="muted" style="font-size:12.5px;margin-bottom:14px">Configura un repositorio para que las imágenes que subas se guarden en GitHub y se sirvan por URL. Sin esto, las imágenes se guardan solo en este navegador.</p>
+      <div class="form-grid">
+        <div class="field"><label>Usuario / organización</label><input id="gh-owner" value="${esc(state.github.owner||'')}" placeholder="mi-usuario"></div>
+        <div class="field"><label>Repositorio</label><input id="gh-repo" value="${esc(state.github.repo||'')}" placeholder="portafolio-img"></div>
+        <div class="field"><label>Rama</label><input id="gh-branch" value="${esc(state.github.branch||'main')}"></div>
+        <div class="field"><label>Carpeta</label><input id="gh-folder" value="${esc(state.github.folder||'propiedades')}"></div>
+        <div class="field full"><label>Token de acceso (fine-grained PAT con permiso Contents: write)</label><input type="password" id="gh-token" value="${localStorage.getItem('abm_gh_token')||''}" placeholder="github_pat_..."></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" id="gh-save">Guardar configuración</button><span class="muted" style="font-size:11.5px">El token se guarda solo en este navegador y no se incluye en los respaldos.</span></div></div>
+
+    <div class="admin-card" style="max-width:720px"><div class="d-lab2" style="margin-top:0">Datos · reporte, plantilla y respaldo</div>
+      <p class="muted" style="font-size:12.5px;margin-bottom:16px">Descarga el reporte en Excel con todo lo guardado, una plantilla para capturar en Excel, o importa datos desde un archivo.</p>
+      <div class="form-actions" style="margin-top:0;flex-wrap:wrap">
+        <button class="btn btn-primary" id="btn-xlsx"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Descargar reporte Excel</button>
+        <button class="btn btn-ghost" id="btn-tpl">Descargar plantilla</button>
+        <label class="btn btn-ghost" style="cursor:pointer">Importar desde Excel<input type="file" id="btn-import" accept=".xlsx,.xls" hidden></label>
+        <button class="btn btn-ghost" id="btn-export">Respaldo JSON</button>
+        <button class="btn btn-ghost" id="btn-gh-backup">Respaldar en GitHub</button>
+        <button class="btn btn-ghost" id="btn-reset" style="color:var(--clay)">Restablecer</button>
+      </div></div>`;
   const upd=()=>{state.fx.EUR=parseFloat(document.getElementById('fx-eur').value)||state.fx.EUR;state.fx.USD=parseFloat(document.getElementById('fx-usd').value)||state.fx.USD;save();fxLabels();renderAll(false);toast('Tipo de cambio actualizado');};
   document.getElementById('fx-eur').addEventListener('change',upd);document.getElementById('fx-usd').addEventListener('change',upd);
+  document.getElementById('gh-save').onclick=()=>{state.github={owner:document.getElementById('gh-owner').value.trim(),repo:document.getElementById('gh-repo').value.trim(),branch:document.getElementById('gh-branch').value.trim()||'main',folder:document.getElementById('gh-folder').value.trim()||'propiedades'};
+    const tk=document.getElementById('gh-token').value.trim();try{if(tk)localStorage.setItem('abm_gh_token',tk);else localStorage.removeItem('abm_gh_token');}catch(e){}save();toast(ghReady()?'GitHub configurado':'Configuración guardada');};
+  document.getElementById('btn-xlsx').onclick=exportExcel;
+  document.getElementById('btn-tpl').onclick=downloadTemplate;
+  document.getElementById('btn-import').onchange=e=>{if(e.target.files[0])importExcel(e.target.files[0]);};
   document.getElementById('btn-export').onclick=exportData;
+  document.getElementById('btn-gh-backup').onclick=backupToGitHub;
   document.getElementById('btn-reset').onclick=()=>{if(confirm('¿Restablecer todos los datos a los valores base?'))resetData();};
+}
+/* ---------- GitHub ---------- */
+function ghReady(){const g=state.github||{};return !!(g.owner&&g.repo&&localStorage.getItem('abm_gh_token'));}
+async function uploadImageToGitHub(dataUrl,propId){
+  const g=state.github||{},token=localStorage.getItem('abm_gh_token');
+  const m=dataUrl.match(/^data:image\/([\w+.-]+);base64,(.+)$/);if(!m)return dataUrl;
+  const ext=(m[1]==='jpeg'?'jpg':m[1]).replace(/[^a-z0-9]/gi,'');const b64=m[2];
+  const path=(g.folder||'propiedades').replace(/^\/+|\/+$/g,'')+'/'+propId+'_'+Date.now()+'.'+ext;
+  const url='https://api.github.com/repos/'+g.owner+'/'+g.repo+'/contents/'+encodeURI(path);
+  const res=await fetch(url,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'},
+    body:JSON.stringify({message:'img '+propId,content:b64,branch:g.branch||'main'})});
+  if(!res.ok)throw new Error('GitHub '+res.status);
+  const j=await res.json();return (j.content&&j.content.download_url)||dataUrl;
+}
+/* ---------- Excel ---------- */
+function xlsxReady(){if(typeof XLSX==='undefined'){toast('Módulo de Excel aún cargando, reintenta');return false;}return true;}
+function exportExcel(){
+  if(!xlsxReady())return;
+  const wb=XLSX.utils.book_new();
+  const props=state.props.map(p=>{const c=computed(p);return {ID:p.id,Nombre:p.name,'Subtítulo':p.sub||'',Empresa:p.emp,Tipo:p.tipo,Ciudad:p.ciudad,Zona:p.zona||'',Estatus:p.estatus,Moneda:p.cur,m2:p.m2,'Año':p.anio,Arrendatario:p.arr||'','Renta mensual':p.renta,'Valor adquisición':p.va,'Valor mercado':p.vm,Adeudo:p.adeudo,'Plusvalía':c.plus,'Plusvalía %':+(c.plusPct*100).toFixed(2),'Patrimonio neto':c.patr,'Yield bruto %':+(c.yB*100).toFixed(2),'Yield neto %':+(c.yN*100).toFixed(2),'LTV %':+(c.ltv*100).toFixed(2),'VM (MXN)':Math.round(c.vmMXN),'Patrimonio (MXN)':Math.round(c.patrMXN),Mensualidad:p.pago?p.pago.mensualidad:'','Pago final':p.pago?p.pago.pagoFinal:'','Cuotas pagadas':p.pago?p.pago.done:'','Cuotas totales':p.pago?p.pago.total:'','Fecha pago final':p.pago?(p.pago.fecha||''):'','Nota pago':p.pago?(p.pago.nota||''):'',Imagen:(p.img&&p.img.startsWith('http'))?p.img:''};});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(props),'Propiedades');
+  const gastos=state.gastos.map(gg=>{const p=state.props.find(x=>x.id===gg.propId);return {ID:gg.id,Fecha:gg.fecha,PropiedadID:gg.propId,Propiedad:p?p.name:'',Tipo:gg.tipo,Monto:gg.monto,Moneda:p?p.cur:'MXN','Monto (MXN)':Math.round(p?toMXN(gg.monto,p.cur):gg.monto),Nota:gg.nota||''};});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(gastos.length?gastos:[{ID:'',Fecha:'',PropiedadID:'',Propiedad:'',Tipo:'',Monto:'',Moneda:'','Monto (MXN)':'',Nota:''}]),'Gastos');
+  const deb=state.props.filter(p=>p.adeudo>0).map(p=>{const c=computed(p),pg=p.pago||{};return {Inmueble:p.name,Empresa:p.emp,'Adeudo (MXN)':Math.round(c.adeudoMXN),Moneda:p.cur,Mensualidad:pg.mensualidad||'','Cuotas':pg.total?pg.done+'/'+pg.total:'','Pago final':pg.pagoFinal||'','Fecha final':pg.fecha||'',Nota:pg.nota||''};});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(deb.length?deb:[{Inmueble:'—'}]),'Adeudos');
+  const flows=buildFlow();const fr=Object.keys(flows).sort().map(k=>({Mes:k,'Pago (MXN)':Math.round(flows[k].total)}));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(fr.length?fr:[{Mes:'—','Pago (MXN)':0}]),'Flujo de pagos');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{'Parámetro':'Tipo de cambio EUR','Valor':fx().EUR},{'Parámetro':'Tipo de cambio USD','Valor':fx().USD},{'Parámetro':'Fecha','Valor':'2026-08-10'}]),'Parámetros');
+  XLSX.writeFile(wb,'Reporte_Portafolio_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  toast('Reporte Excel descargado');
+}
+function downloadTemplate(){
+  if(!xlsxReady())return;
+  const wb=XLSX.utils.book_new();
+  const cols=['ID','Nombre','Subtítulo','Empresa','Tipo','Ciudad','Zona','Estatus','Moneda','m2','Año','Arrendatario','Renta mensual','Valor adquisición','Valor mercado','Adeudo','Mensualidad','Pago final','Cuotas pagadas','Cuotas totales','Fecha pago final','Nota pago','Imagen'];
+  const ej={ID:'demo1',Nombre:'Departamento Demo',['Subtítulo']:'Torre A · 101',Empresa:'TERRALIA',Tipo:'Residencial',Ciudad:'Zapopan',Zona:'',Estatus:'Rentado',Moneda:'MXN',m2:100,['Año']:2024,Arrendatario:'',['Renta mensual']:20000,['Valor adquisición']:5000000,['Valor mercado']:6000000,Adeudo:0,Mensualidad:0,['Pago final']:0,['Cuotas pagadas']:0,['Cuotas totales']:0,['Fecha pago final']:'',['Nota pago']:'',Imagen:''};
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([ej],{header:cols}),'Propiedades');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{ID:'g-demo',Fecha:'2026-01-15',PropiedadID:'demo1',Tipo:'Predial',Monto:12000,Nota:''}],{header:['ID','Fecha','PropiedadID','Tipo','Monto','Nota']}),'Gastos');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['INSTRUCCIONES'],[''],['1. Captura una fila por inmueble en la hoja Propiedades.'],['2. Captura una fila por gasto en la hoja Gastos (PropiedadID debe coincidir con el ID del inmueble).'],['3. En Parámetros usa “Importar desde Excel”. Esto reemplaza los datos actuales.'],[''],['Moneda válida: MXN, EUR, USD'],['Tipo: '+TIPO_ORDER.join(', ')],['Empresa: '+EMP_ORDER.join(', ')],['Estatus: '+ESTATUS.join(', ')],['Fecha pago final en formato AAAA-MM (ej. 2027-06).']]),'Instrucciones');
+  XLSX.writeFile(wb,'Plantilla_Portafolio.xlsx');
+  toast('Plantilla descargada');
+}
+function cellStr(v){if(v==null)return '';if(v instanceof Date)return v.toISOString().slice(0,10);return String(v).trim();}
+function importExcel(file){
+  if(!xlsxReady())return;
+  const r=new FileReader();
+  r.onload=e=>{try{
+    const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+    const sp=wb.Sheets['Propiedades'];if(!sp){toast('El archivo no tiene la hoja “Propiedades”');return;}
+    const rows=XLSX.utils.sheet_to_json(sp,{defval:''});
+    const np=rows.filter(x=>cellStr(x.Nombre)).map(x=>{const num=k=>parseFloat(x[k])||0;
+      const mens=num('Mensualidad'),fin=num('Pago final'),tot=num('Cuotas totales');
+      const pago=(mens||fin||tot)?{mensualidad:mens,pagoFinal:fin,done:num('Cuotas pagadas'),total:tot,fecha:cellStr(x['Fecha pago final']).slice(0,7)||null,nota:cellStr(x['Nota pago'])}:null;
+      return {id:cellStr(x.ID)||slug(cellStr(x.Nombre)),img:cellStr(x.Imagen),name:cellStr(x.Nombre),sub:cellStr(x['Subtítulo']),emp:cellStr(x.Empresa)||'TERRALIA',tipo:cellStr(x.Tipo)||'Residencial',ciudad:cellStr(x.Ciudad),zona:cellStr(x.Zona),estatus:cellStr(x.Estatus)||'Rentado',cur:cellStr(x.Moneda)||'MXN',m2:num('m2'),anio:num('Año')||2026,arr:cellStr(x.Arrendatario),renta:num('Renta mensual'),va:num('Valor adquisición'),vm:num('Valor mercado'),adeudo:num('Adeudo'),pago};});
+    let ng=[];const sg=wb.Sheets['Gastos'];
+    if(sg)ng=XLSX.utils.sheet_to_json(sg,{defval:''}).filter(x=>parseFloat(x.Monto)).map(x=>({id:cellStr(x.ID)||uid(),fecha:cellStr(x.Fecha).slice(0,10),propId:cellStr(x.PropiedadID),tipo:cellStr(x.Tipo)||'Otro',monto:parseFloat(x.Monto)||0,nota:cellStr(x.Nota)}));
+    if(!np.length){toast('No se encontraron propiedades en el archivo');return;}
+    askImportMode(np,ng);
+  }catch(err){console.error(err);toast('No se pudo leer el Excel');}};
+  r.readAsArrayBuffer(file);
+}
+function askImportMode(np,ng){
+  openModal(`<div class="modal-head"><h3>Importar datos</h3><button class="close-m" id="m-close">×</button></div>
+    <div class="modal-body"><p class="muted" style="font-size:13px;margin-bottom:16px">Se leyeron <b>${np.length}</b> propiedades${ng.length?` y <b>${ng.length}</b> gastos`:''}. ¿Cómo quieres aplicarlos?</p>
+    <div class="import-opts">
+      <button class="imp-opt" id="imp-merge"><b>Fusionar</b><span>Actualiza las que coincidan por ID y agrega las nuevas. Conserva el resto de tus datos.</span></button>
+      <button class="imp-opt" id="imp-replace"><b>Reemplazar todo</b><span>Borra los datos actuales y deja únicamente lo importado.</span></button>
+    </div><div class="modal-actions"><button class="btn btn-ghost" id="m-cancel">Cancelar</button></div></div>`);
+  document.getElementById('m-close').onclick=closeModal;document.getElementById('m-cancel').onclick=closeModal;
+  document.getElementById('imp-merge').onclick=()=>applyImport(np,ng,'merge');
+  document.getElementById('imp-replace').onclick=()=>applyImport(np,ng,'replace');
+}
+function applyImport(np,ng,mode){
+  if(mode==='replace'){state.props=np;state.gastos=ng;}
+  else{
+    const pm=new Map(state.props.map(p=>[p.id,p]));
+    np.forEach(p=>{if(pm.has(p.id))Object.assign(pm.get(p.id),p);else{state.props.push(p);pm.set(p.id,p);}});
+    const gm=new Map(state.gastos.map(g=>[g.id,g]));
+    ng.forEach(g=>{if(gm.has(g.id))Object.assign(gm.get(g.id),g);else state.gastos.push(g);});
+  }
+  save();closeModal();renderAll();nav('catalogo');toast(mode==='merge'?'Datos fusionados':'Datos reemplazados');
+}
+/* ---------- Respaldo JSON en GitHub ---------- */
+async function backupToGitHub(){
+  if(!ghReady()){toast('Configura primero el repositorio y el token de GitHub');nav('parametros');return;}
+  const g=state.github,token=localStorage.getItem('abm_gh_token');
+  const path='backups/portafolio.json';
+  const api='https://api.github.com/repos/'+g.owner+'/'+g.repo+'/contents/'+path;
+  const hdr={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'};
+  toast('Respaldando en GitHub…');
+  try{
+    let sha=null;
+    const head=await fetch(api+'?ref='+(g.branch||'main'),{headers:hdr});
+    if(head.ok){const hj=await head.json();sha=hj.sha;}
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))));
+    const body={message:'Respaldo portafolio '+new Date().toISOString(),content,branch:g.branch||'main'};
+    if(sha)body.sha=sha;
+    const res=await fetch(api,{method:'PUT',headers:hdr,body:JSON.stringify(body)});
+    if(!res.ok)throw new Error('GitHub '+res.status);
+    toast('Respaldo subido a GitHub · backups/portafolio.json');
+  }catch(e){toast('No se pudo respaldar: '+e.message);}
 }
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='portafolio_'+Date.now()+'.json';a.click();toast('Respaldo descargado');}
 
@@ -698,12 +831,20 @@ function openPropForm(id,focus){
   document.getElementById('m-img-rm').onclick=()=>{imgBuffer='';const pv=document.getElementById('imgprev');pv.style.backgroundImage='';pv.innerHTML='<span>Sin imagen</span>';document.getElementById('m-img-rm').style.display='none';};
   document.getElementById('m-img').onchange=e=>{const f=e.target.files[0];if(!f)return;if(f.size>1.6e6){toast('Imagen muy grande (máx ~1.5 MB)');return;}
     const r=new FileReader();r.onload=()=>{imgBuffer=r.result;const pv=document.getElementById('imgprev');pv.style.backgroundImage=`url('${imgBuffer}')`;pv.innerHTML='';document.getElementById('m-img-rm').style.display='';};r.readAsDataURL(f);};
-  document.getElementById('m-save').onclick=()=>{
+  document.getElementById('m-save').onclick=async ()=>{
     const g=k=>document.getElementById(k).value,n=k=>parseFloat(g(k))||0;
     const name=g('m-name').trim();if(!name){toast('Escribe un nombre');return;}
+    const pid=p?p.id:slug(name);
+    let img=imgBuffer||'';
+    if(img.startsWith('data:')&&ghReady()){
+      const btn=document.getElementById('m-save');btn.disabled=true;btn.textContent='Subiendo imagen…';
+      try{img=await uploadImageToGitHub(img,pid);toast('Imagen guardada en GitHub');}
+      catch(e){toast('No se pudo subir a GitHub; imagen guardada localmente');}
+      btn.disabled=false;
+    }
     const mens=n('m-mens'),fin=n('m-final'),tot=n('m-total');
     const pago=(mens>0||fin>0||tot>0)?{mensualidad:mens,pagoFinal:fin,done:n('m-done'),total:tot,fecha:g('m-fecha')||null,nota:g('m-nota').trim()}:null;
-    const obj={id:p?p.id:slug(name),img:imgBuffer||'',name,sub:g('m-sub').trim(),emp:g('m-emp'),tipo:g('m-tipo'),ciudad:g('m-ciudad').trim(),zona:g('m-zona').trim(),estatus:g('m-estatus'),cur:g('m-cur'),m2:n('m-m2'),anio:n('m-anio')||2026,arr:g('m-arr').trim(),renta:n('m-renta'),va:n('m-va'),vm:n('m-vm'),adeudo:n('m-adeudo'),pago};
+    const obj={id:pid,img,name,sub:g('m-sub').trim(),emp:g('m-emp'),tipo:g('m-tipo'),ciudad:g('m-ciudad').trim(),zona:g('m-zona').trim(),estatus:g('m-estatus'),cur:g('m-cur'),m2:n('m-m2'),anio:n('m-anio')||2026,arr:g('m-arr').trim(),renta:n('m-renta'),va:n('m-va'),vm:n('m-vm'),adeudo:n('m-adeudo'),pago};
     if(p)Object.assign(p,obj);else state.props.push(obj);
     save();closeModal();renderAll(false);if(openId&&openId===obj.id)openFicha(obj.id);toast(p?'Propiedad actualizada':'Propiedad agregada');
   };
