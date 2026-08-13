@@ -284,6 +284,34 @@ tr.total-row td{background:var(--paper-2);font-weight:700;border-top:2px solid v
 .imp-opt:hover{border-color:var(--brass);background:var(--paper-2)}
 .imp-opt b{font-size:14px;color:var(--ink)}
 .imp-opt span{font-size:12px;color:var(--muted)}
+
+/* auto-respaldo + checkbox */
+.gh-status{font-size:10.5px;font-weight:600;margin-top:8px;letter-spacing:.02em}
+.gh-status.ready{color:#9A958A}.gh-status.pending{color:var(--brass)}.gh-status.syncing{color:var(--brass)}
+.gh-status.ok{color:#8FB58F}.gh-status.err{color:#E5A48F}
+.chk{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-soft);cursor:pointer}
+.chk input{width:15px;height:15px;accent-color:var(--brass)}
+/* --- compactado 2 --- */
+.view{padding-top:16px}
+.kpis{margin-bottom:15px}
+.kpi{padding:10px 13px}
+.filters{margin-bottom:13px}
+.tablewrap{margin-bottom:13px}
+.flowchart{margin-bottom:13px;padding:16px 18px}
+.d-section{margin-bottom:15px}
+.admin-card{padding:14px 16px}
+.params-grid{gap:10px;margin-bottom:13px}
+.param-card{padding:13px 15px}
+.modal-body{padding:15px 20px 20px}
+.form-grid{gap:10px 13px}
+.grid{gap:11px}
+.gasto-bar{margin-bottom:12px}
+.tot-chips{margin-bottom:12px}
+.gastos-note{margin-bottom:14px}
+td{padding:6px 12px}
+th{padding:7px 12px}
+.metric{padding:9px 12px}
+.d-lab2{margin:13px 0 8px}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -302,6 +330,7 @@ tr.total-row td{background:var(--paper-2);font-weight:700;border-top:2px solid v
     <div class="nav-foot">
       <div id="foot-date"></div>
       <div style="margin-top:6px">Gestión patrimonial · MXN · EUR · USD</div>
+      <div id="gh-status" class="gh-status"></div>
     </div>
   </aside>
 
@@ -372,12 +401,17 @@ let state = normalize(load());
 function load(){ try{const s=localStorage.getItem(LS_KEY);if(s)return JSON.parse(s);}catch(e){} return structuredClone(SEED); }
 function normalize(s){
   s.fx=s.fx||{EUR:19.81,USD:17.46};
-  s.github=s.github||{owner:'',repo:'',branch:'main',folder:'propiedades'};
+  s.github=s.github||{};
+  s.github.owner=s.github.owner||'terraliaadm';
+  s.github.repo=s.github.repo||'Terraliaprop';
+  s.github.branch=s.github.branch||'main';
+  s.github.folder=s.github.folder||'propiedades';
+  if(s.github.auto===undefined)s.github.auto=true;
   s.props=(s.props||[]).map(p=>{const q={img:'',...p};delete q.g;return q;});
   if(!Array.isArray(s.gastos)) s.gastos=structuredClone(SEED.gastos||[]);
   return s;
 }
-function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){toast('No se pudo guardar (¿imagen muy grande?)');} }
+function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){toast('No se pudo guardar (¿imagen muy grande?)');} scheduleBackup(); }
 function resetData(){ state=normalize(structuredClone(SEED)); save(); renderAll(); toast('Datos restablecidos al valor base'); }
 
 const TODAY=new Date(2026,7,10);
@@ -594,7 +628,9 @@ function renderParametros(){
         <div class="field"><label>Carpeta</label><input id="gh-folder" value="${esc(state.github.folder||'propiedades')}"></div>
         <div class="field full"><label>Token de acceso (fine-grained PAT con permiso Contents: write)</label><input type="password" id="gh-token" value="${localStorage.getItem('abm_gh_token')||''}" placeholder="github_pat_..."></div>
       </div>
-      <div class="form-actions"><button class="btn btn-primary" id="gh-save">Guardar configuración</button><span class="muted" style="font-size:11.5px">El token se guarda solo en este navegador y no se incluye en los respaldos.</span></div></div>
+      <div class="form-actions" style="margin-top:0;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" id="gh-save">Guardar configuración</button>
+        <label class="chk"><input type="checkbox" id="gh-auto" ${state.github.auto!==false?'checked':''}> Respaldo automático al guardar cambios</label>
+        <span class="muted" style="font-size:11.5px;flex-basis:100%">El token se guarda solo en este navegador y no se incluye en los respaldos.</span></div></div>
 
     <div class="admin-card" style="max-width:720px"><div class="d-lab2" style="margin-top:0">Datos · reporte, plantilla y respaldo</div>
       <p class="muted" style="font-size:12.5px;margin-bottom:16px">Descarga el reporte en Excel con todo lo guardado, una plantilla para capturar en Excel, o importa datos desde un archivo.</p>
@@ -608,8 +644,8 @@ function renderParametros(){
       </div></div>`;
   const upd=()=>{state.fx.EUR=parseFloat(document.getElementById('fx-eur').value)||state.fx.EUR;state.fx.USD=parseFloat(document.getElementById('fx-usd').value)||state.fx.USD;save();fxLabels();renderAll(false);toast('Tipo de cambio actualizado');};
   document.getElementById('fx-eur').addEventListener('change',upd);document.getElementById('fx-usd').addEventListener('change',upd);
-  document.getElementById('gh-save').onclick=()=>{state.github={owner:document.getElementById('gh-owner').value.trim(),repo:document.getElementById('gh-repo').value.trim(),branch:document.getElementById('gh-branch').value.trim()||'main',folder:document.getElementById('gh-folder').value.trim()||'propiedades'};
-    const tk=document.getElementById('gh-token').value.trim();try{if(tk)localStorage.setItem('abm_gh_token',tk);else localStorage.removeItem('abm_gh_token');}catch(e){}save();toast(ghReady()?'GitHub configurado':'Configuración guardada');};
+  document.getElementById('gh-save').onclick=()=>{state.github={owner:document.getElementById('gh-owner').value.trim(),repo:document.getElementById('gh-repo').value.trim(),branch:document.getElementById('gh-branch').value.trim()||'main',folder:document.getElementById('gh-folder').value.trim()||'propiedades',auto:document.getElementById('gh-auto').checked};
+    const tk=document.getElementById('gh-token').value.trim();try{if(tk)localStorage.setItem('abm_gh_token',tk);else localStorage.removeItem('abm_gh_token');}catch(e){}save();setGhStatus(ghReady()&&state.github.auto?'ok':'off');toast(ghReady()?'GitHub configurado':'Configuración guardada');};
   document.getElementById('btn-xlsx').onclick=exportExcel;
   document.getElementById('btn-tpl').onclick=downloadTemplate;
   document.getElementById('btn-import').onchange=e=>{if(e.target.files[0])importExcel(e.target.files[0]);};
@@ -698,14 +734,21 @@ function applyImport(np,ng,mode){
   }
   save();closeModal();renderAll();nav('catalogo');toast(mode==='merge'?'Datos fusionados':'Datos reemplazados');
 }
-/* ---------- Respaldo JSON en GitHub ---------- */
-async function backupToGitHub(){
-  if(!ghReady()){toast('Configura primero el repositorio y el token de GitHub');nav('parametros');return;}
+/* ---------- Respaldo JSON en GitHub (manual + automático) ---------- */
+let backupT=null,backupInFlight=false,backupAgain=false;
+function scheduleBackup(){ if(!ghReady()||state.github.auto===false){setGhStatus('off');return;} clearTimeout(backupT); setGhStatus('pending'); backupT=setTimeout(runAutoBackup,4000); }
+async function runAutoBackup(){ if(backupInFlight){backupAgain=true;return;} backupInFlight=true; try{await backupToGitHub(true);}finally{backupInFlight=false; if(backupAgain){backupAgain=false;scheduleBackup();}} }
+function setGhStatus(s){ const el=document.getElementById('gh-status'); if(!el)return;
+  const n=new Date(),hh=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  const map={off:'',ready:'· Auto-respaldo activo',pending:'● Respaldo pendiente…',syncing:'● Respaldando…',ok:'✓ Respaldado '+hh,err:'⚠ Error de respaldo'};
+  el.textContent=map[s]||''; el.className='gh-status '+s; }
+async function backupToGitHub(silent){
+  if(!ghReady()){ if(!silent){toast('Configura primero el repositorio y el token de GitHub');nav('parametros');} return; }
   const g=state.github,token=localStorage.getItem('abm_gh_token');
   const path='backups/portafolio.json';
   const api='https://api.github.com/repos/'+g.owner+'/'+g.repo+'/contents/'+path;
   const hdr={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'};
-  toast('Respaldando en GitHub…');
+  if(!silent)toast('Respaldando en GitHub…'); setGhStatus('syncing');
   try{
     let sha=null;
     const head=await fetch(api+'?ref='+(g.branch||'main'),{headers:hdr});
@@ -715,8 +758,8 @@ async function backupToGitHub(){
     if(sha)body.sha=sha;
     const res=await fetch(api,{method:'PUT',headers:hdr,body:JSON.stringify(body)});
     if(!res.ok)throw new Error('GitHub '+res.status);
-    toast('Respaldo subido a GitHub · backups/portafolio.json');
-  }catch(e){toast('No se pudo respaldar: '+e.message);}
+    setGhStatus('ok'); if(!silent)toast('Respaldo subido a GitHub · backups/portafolio.json');
+  }catch(e){setGhStatus('err'); toast('No se pudo respaldar en GitHub: '+e.message);}
 }
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='portafolio_'+Date.now()+'.json';a.click();toast('Respaldo descargado');}
 
@@ -884,6 +927,7 @@ function fxLabels(){document.getElementById('fx-eur-lbl').textContent=fx().EUR;d
 function renderAll(reFicha=true){renderCatalogo();renderAnalisis();renderAdeudos();renderGastos();renderParametros();fxLabels();if(reFicha&&openId)openFicha(openId);}
 document.getElementById('foot-date').textContent='Base · 10 agosto 2026';
 fxLabels();renderAll();
+setGhStatus(ghReady()&&state.github.auto!==false?'ready':'off');
 
 </script>
 </body>
