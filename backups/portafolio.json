@@ -206,7 +206,7 @@
       "pago": null
     },
     {
-      "img": "",
+      "img": "https://raw.githubusercontent.com/terraliaadm/Terraliaprop/main/propiedades/ceibas73_1786649255026.jpg",
       "id": "ceibas73",
       "name": "Terreno Ceibas 73",
       "sub": "Ceibas UP 73",
@@ -226,12 +226,14 @@
       "pago": {
         "mensualidad": 0,
         "pagoFinal": 2484432.08,
+        "done": 0,
+        "total": 0,
         "fecha": "2027-06",
         "nota": "Pago final · entrega junio 2027"
       }
     },
     {
-      "img": "",
+      "img": "https://raw.githubusercontent.com/terraliaadm/Terraliaprop/main/propiedades/ceibas74_1786649269426.jpg",
       "id": "ceibas74",
       "name": "Terreno Ceibas 74",
       "sub": "Ceibas UP 74",
@@ -251,12 +253,14 @@
       "pago": {
         "mensualidad": 0,
         "pagoFinal": 2483782.95,
+        "done": 0,
+        "total": 0,
         "fecha": "2027-06",
         "nota": "Pago final · entrega junio 2027"
       }
     },
     {
-      "img": "",
+      "img": "https://raw.githubusercontent.com/terraliaadm/Terraliaprop/main/propiedades/ceibas75_1786649280714.jpg",
       "id": "ceibas75",
       "name": "Terreno Ceibas 75",
       "sub": "Ceibas UP 75",
@@ -276,6 +280,8 @@
       "pago": {
         "mensualidad": 0,
         "pagoFinal": 2483782.95,
+        "done": 0,
+        "total": 0,
         "fecha": "2027-06",
         "nota": "Pago final · entrega junio 2027"
       }
